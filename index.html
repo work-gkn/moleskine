@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <title>Notebook</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/moleskine.css" />
+  </head>
+
+  <body class="container">
+    <header class="py-5 text-center">
+      <hgroup>
+        <h1 class="display-4">Notebook</h1>
+      </hgroup>
+      <p class="lead">This is a small example for using localstorage</p>
+    </header>
+    <noscript>
+      <div class="alert alert-warning" role="alert">
+        <strong>Heads up!</strong>
+        <br />Javascript must be activated for this application
+      </div>
+    </noscript>
+
+    <div class="card">
+      <h2 id="author" class="card-header bg-dark text-white" contenteditable>Name of author - Could be changed. Click here!</h2>
+        <div class="card-body">
+          <form action="javascript:void(0)">
+            <div class="mb-3">
+              <label for="textarea" class="form-label">Enter your notice</label>
+              <textarea id="textarea" class="form-control" placeholder="Write your text here!"></textarea>
+            </div>
+            <input id="save" type="submit" class="btn btn-dark" value="Save" />
+          </form>
+        </div>
+    </div>
+
+    <div class="card mt-5">
+      <div class="card-header bg-secondary text-white">
+        Last updated: <time datetime="">-</time>
+      </div>
+      <ul id="containerNotes" class="list-group list-group-flush"></ul>
+    </div>
+
+    <div id="debug"></div>
+
+    <script type="text/javascript" src="lib/popper.min.js"></script>
+    <script type="text/javascript" src="lib/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+  </body>
+</html>
