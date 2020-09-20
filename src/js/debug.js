@@ -27,7 +27,7 @@ var oDebug = (function () {
 
   /**
    * Defines the toster and set it into the right position in DOM
-   * @param {String} sText Text that should be shown in toaster
+   * @param {string} sText Text that should be shown in toaster
    */
   fCreateOutput = function(sText) {
     if (typeof sText !== 'string' || sText === '') {
@@ -63,7 +63,7 @@ var oDebug = (function () {
 
   /**
    * Gets a text to show in the toaster.
-   * @param {String} sText Message, that could be set to the debug body
+   * @param {string} sText Message, that could be set to the debug body
    */
   fSetText = function (sText) {
     if (typeof sText === 'string' && sText !== "") {
