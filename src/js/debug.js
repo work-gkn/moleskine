@@ -1,9 +1,12 @@
+"use strict"; 
+var oDebug = {};
+
 /**
  * Module to generate a Message in a toaster
  * @module oDebug
  * @exports setText
  */
-var oDebug = (function () {
+oDebug = (function () {
   let fSetText,
     fCreateOutput,
     fShow;
