@@ -1,24 +1,15 @@
-"use strict"; 
-var oDebug = {};
-
 /**
  * Module to generate a Message in a toaster
- * @module oDebug
- * @exports setText
  */
-oDebug = (function () {
-  let fSetText,
-    fCreateOutput,
-    fShow;
-
+var mDebug = (function () {
   /**
    * inits and shows the toaster. This is taken from bootstrap documentation
    */
-  fShow = function() {
+  const fShow = function() {
     try {
-      let toastElList = [].slice.call(document.querySelectorAll('.toast'))
+      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
       let toastList = toastElList.map(function (toastEl) {
-        return new self.bootstrap.Toast(toastEl, {delay:1500})
+        return new self.bootstrap.Toast(toastEl, {delay:1500});
       });
       for (const toast of toastList) {
         toast.show();
@@ -32,7 +23,7 @@ oDebug = (function () {
    * Defines the toster and set it into the right position in DOM
    * @param {string} sText Text that should be shown in toaster
    */
-  fCreateOutput = function(sText) {
+  const fCreateOutput = function(sText) {
     if (typeof sText !== 'string' || sText === '') {
       self.console.warn('Format of parameter was not correct');
       return;
@@ -61,15 +52,15 @@ oDebug = (function () {
       eDvTst.remove();
     });
 
-    eCntner.appendChild(eDvTst)
+    eCntner.appendChild(eDvTst);
   };
 
   /**
    * Gets a text to show in the toaster.
    * @param {string} sText Message, that could be set to the debug body
    */
-  fSetText = function (sText) {
-    if (typeof sText === 'string' && sText !== "") {
+  const fSetText = function (sText) {
+    if (typeof sText === 'string' && sText !== '') {
       fCreateOutput(sText);
       fShow();
     } else {
@@ -77,7 +68,7 @@ oDebug = (function () {
     }
   };
 
-  //Set the public methods
+  // Set the public methods
   return {
     setText: fSetText
   };

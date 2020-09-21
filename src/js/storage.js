@@ -1,21 +1,19 @@
 /**
  * Module to interact with localStorage
- * @module oStorage
- * @exports set
- * @exports getAll
- * @exports remove
  */
-var oStorage = (function () {
-  let fRemove,
-    fGetAll,
-    fSet;
-
+var mStorage = (function (mDebug) {
+  if (typeof self.mDebug === 'undefined') {
+    return;
+  }
+  // import
+  const fSetText = mDebug.setText;
+  
   /**
    * Sets the given parameters into localstorage
    * @param {String} sKey The key for the local storage
    * @param {String} sValue Content to store
    */
-  fSet = function (sKey, sValue) {
+  const fSet = function (sKey, sValue) {
     if (typeof sKey !== 'string' || sKey === '') {
       self.console.warn('Format of parameter sKey is not correct');
       return false;
@@ -29,12 +27,11 @@ var oStorage = (function () {
     try {
       localStorage.setItem(sKey, sValue);
       if (sKey !== 'author') {
-        oDebug.setText('Entry saved locally');
-
+        fSetText('Entry saved locally');
       }
       return true;
     } catch (e) {
-      oDebug.setText('Error while saving: ' + e);
+      fSetText('Error while saving: ' + e);
       return false;
     }
   };
@@ -44,7 +41,7 @@ var oStorage = (function () {
    * entries in descending order. 
    * @returns {Array} Array with objects of entries
    */
-  fGetAll = function () {
+  const fGetAll = function () {
     let aKeys = [],
       aValues = [];
 
@@ -56,7 +53,6 @@ var oStorage = (function () {
     for (let i = aKeys.length; i-- > 0;) {
       let sKey = aKeys[i],
         sValue = localStorage.getItem(sKey);
-      
       if (sValue) {
         aValues.push({key: sKey, value: sValue});
       } else {
@@ -71,25 +67,25 @@ var oStorage = (function () {
    * @param {String} sId The key in localStorage to remove
    * @returns {Boolean} If operation was successfull or not
    */
-  fRemove = function (sId) {
+  const fRemove = function (sId) {
     if (typeof sId !== 'string' || sId === '') {
       self.console.warn('Format of parameter sId was not correct');
       return false;
     }
-
     try {
       localStorage.removeItem(sId);
-      oDebug.setText('Entry deleted locally');
+      fSetText('Entry deleted locally');
       return true;
     } catch (e) {
-      oDebug.setText('Error while deleting: ' + e);
+      fSetText('Error while deleting: ' + e);
       return false;
     }
   };
-
+  
+  // Set the public methods 
   return {
     getAll: fGetAll,
     remove: fRemove,
     set: fSet
   };
-})();
+})(self.mDebug);

@@ -1,31 +1,42 @@
 
 // Starts to initialize the site
-(function (oDebug, oCache, oNotes) {
-  "use strict";
+(function (mDebug, mNotes) {
+  'use strict';
+  if (typeof mDebug === 'undefined' || typeof mNotes === 'undefined') {
+    self.console.error('Missing module mDebug or mNotes');
+    return;
+  }
+  
+  // import
+  const fSetText = mDebug.setText,
+    fInit = mNotes.init,
+    fSave = mNotes.save;
+  
   let bClean = false,
     eAuthor = document.getElementById('author'),
     eBtn = document.getElementById('save'),
-    eText = document.getElementById('textarea'),
-    fCleanUp;
-
-  // Clean up the textarea
-  fCleanUp = function () {
-      if (bClean) {
-        return;
-      }
-      eText.value = '';
-      bClean = true;
+    eText = document.getElementById('textarea');
+  
+  /**
+   * Clean up the textarea from text
+   */
+  const fCleanUp = function () {
+    if (bClean) {
+      return;
+    }
+    eText.value = '';
+    bClean = true;
   };
   
-  self.addEventListener('online', () => oDebug.setText('on the web'));
-  self.addEventListener('offline', () => oDebug.setText('off the web'));
+  self.addEventListener('online', () => fSetText('on the web'));
+  self.addEventListener('offline', () => fSetText('off the web'));
 
   if (navigator.onLine) {
-    oDebug.setText('on the web');
+    fSetText('on the web');
   } else {
-    oDebug.setText('off the web');
+    fSetText('off the web');
   }
-  oCache.init();
+  // oCache.init();
 
   eAuthor.addEventListener('click', () => eAuthor.firstChild.nodeValue = '');
 
@@ -33,11 +44,11 @@
   eText.addEventListener('focus', () => fCleanUp());
 
   eBtn.addEventListener('click', () => {
-    if (oNotes.save(eText.value, eAuthor.firstChild.nodeValue)) {
+    if (fSave(eText.value, eAuthor.firstChild.nodeValue)) {
       bClean = false;
     }
     eText.focus();
   });
 
-  eAuthor.firstChild.nodeValue = oNotes.init(eText.value, eAuthor.firstChild.nodeValue);
-})(self.oDebug, self.oCache, self.oNotes);
+  eAuthor.firstChild.nodeValue = fInit(eText.value, eAuthor.firstChild.nodeValue);
+})(self.mDebug, self.mNotes);
