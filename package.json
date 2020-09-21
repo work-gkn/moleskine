@@ -1,10 +1,10 @@
 {
   "name": "moleskine",
-  "version": "0.1.0",
-  "description": "A simple application to demonstrate LocalStorage",
-  "browser": "js/main.js",
+  "version": "0.1.1",
+  "description": "A simple HTML-App to demo LocalStorage.",
   "scripts": {
-    "watch": "grunt"
+    "watch": "grunt",
+    "lib": "grunt lib"
   },
   "repository": {
     "type": "git",
@@ -18,18 +18,15 @@
   ],
   "author": "work-gkn <work.gkn@gmail.com>",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/work-gkn/moleskine/issues"
-  },
   "homepage": "https://github.com/work-gkn/moleskine#readme",
   "devDependencies": {
     "bootstrap": "~5.0.0-alpha1",
+    "eslint": "^7.4.0",
     "grunt": "^1.3.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-watch": "^1.1.0",
     "popper.js": "^1.16.1"
   },
-  "dependencies": {},
-  "files": ["index.html", "css/*", "js/*"]
+  "dependencies": {}
 }

@@ -1,19 +1,18 @@
 /**
- * Module to handle the note items
- * @module oNotes
- * @exports init
- * @exports save
+ * Module to handle the notes
  */
-var oNotes = (function () {
+var mNotes = (function (mDebug, mStorage) {
+  if (typeof mDebug === 'undefined' || typeof mStorage === 'undefined') {
+    return;
+  }
+  // import
+  const fSetText = mDebug.setText,
+    fGetAll = mStorage.getAll,
+    fRemove = mStorage.remove,
+    fSet = mStorage.set;
+  
   let bStorage = true,
     eUl = document.getElementById('containerNotes'),
-    fCreate,
-    fDateToString,
-    fDelete,
-    fInit,
-    fReadStore, 
-    fSave,
-    fUpdateTimeElement,
     sDefaultAuthor = '',
     sDefaultText = '';
 
@@ -24,7 +23,7 @@ var oNotes = (function () {
    *                         1 = For output in frontend
    *                         2 = For insert into datetime attribute
    */
-  fDateToString = function (oDate, nFormat = 1) {
+  const fDateToString = function (oDate, nFormat = 1) {
     let fPad,
       sDate,
       sTime;
@@ -56,7 +55,7 @@ var oNotes = (function () {
    * @param {String} sValueText   Text to set in the textnode of time element
    * @param {String} sValueAttrib Text to set into the datetime attribute of time element
    */
-  fUpdateTimeElement = function (sValueText, sValueAttrib) {
+  const fUpdateTimeElement = function (sValueText, sValueAttrib) {
     if (typeof sValueText !== 'string' || sValueText === '') {
       self.console.warn('Wrong format for parameter sValueText');
       return;
@@ -80,7 +79,7 @@ var oNotes = (function () {
    * @param {String} sId ID that should be tried to remove from localStorage
    * @returns {Boolean} If deletion was successful or not
    */
-  fDelete = function(sId) {
+  const fDelete = function(sId) {
     if (typeof sId !== 'string' || sId === '') {
       self.console.log('Wrong format for parameter sId');
       return false;
@@ -90,7 +89,7 @@ var oNotes = (function () {
       oDate = new Date();
 
     if (bQuestion && bStorage) {
-      bQuestion = oStorage.remove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
+      bQuestion = fRemove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
     }
     
     if (bQuestion) {
@@ -105,7 +104,7 @@ var oNotes = (function () {
    * @param {String} sText   Text for li element
    * @param {Boolean} bFirst Item should be set on top
    */
-  fCreate = function(sId, sText, bFirst = false) {
+  const fCreate = function(sId, sText, bFirst = false) {
     let oDate = new Date(sId),
       eLi = document.createElement('li'),
       eDiv = document.createElement('div'),
@@ -120,7 +119,7 @@ var oNotes = (function () {
 
     eBtn.setAttribute('type', 'button');
     eBtn.classList.add('btn', 'btn-danger', 'destroy');
-    eBtn.appendChild(document.createTextNode('Delete'))
+    eBtn.appendChild(document.createTextNode('Delete'));
 
     eDiv.appendChild(eStr);
     eDiv.appendChild(eP);
@@ -152,7 +151,7 @@ var oNotes = (function () {
    * @param {String} sAuthor Content from h2 element
    * @returns {Boolean} Save in localStorage was successful or not
    */
-  fSave = function(sEntry, sAuthor) {
+  const fSave = function(sEntry, sAuthor) {
     let bSuccess = true, // When no localStorage is available, set only to DOM
       oDate = new Date(),
       nKey = oDate.getTime();
@@ -163,9 +162,9 @@ var oNotes = (function () {
 
     if (bStorage) {
       if (sAuthor !== sDefaultAuthor) {
-        bSuccess = oStorage.set('author', sAuthor);
+        bSuccess = fSet('author', sAuthor);
       }
-      bSuccess = oStorage.set(nKey.toString(), sEntry);
+      bSuccess = fSet(nKey.toString(), sEntry);
     }
     if (bSuccess) {
       fCreate(nKey, sEntry, true);
@@ -178,8 +177,8 @@ var oNotes = (function () {
    * Get entries from Storage and writes the information for each item into DOM
    * @returns {String} value read from aEntries with key author or an empty string
    */
-  fReadStore = function () {
-    let aEntries = oStorage.getAll(),
+  const fReadStore = function () {
+    let aEntries = fGetAll(),
       bUpdate = true,
       oDate = new Date(),
       sAuthor = '';
@@ -212,7 +211,7 @@ var oNotes = (function () {
    * @param {String} sAuthorDef The default text in h2 element
    * @returns {String} Content from fReadstore or h2 element 
    */
-  fInit = function(sTextDef, sAuthorDef) {
+  const fInit = function(sTextDef, sAuthorDef) {
     let oDate = new Date(),
       sAuthor = '';
 
@@ -220,7 +219,7 @@ var oNotes = (function () {
     fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
   
     if (typeof(self.localStorage) === 'undefined') {
-      oDebug.setText('No localStorage!');
+      fSetText('No localStorage!');
       bStorage = false;
     } else {
       sAuthor = fReadStore();
@@ -246,4 +245,4 @@ var oNotes = (function () {
     init: fInit,
     save: fSave,
   };
-})();
+})(self.mDebug, self.mStorage);
