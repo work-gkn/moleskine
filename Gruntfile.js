@@ -5,20 +5,21 @@ module.exports = function(grunt) {
       concat: {
         src: {
           src: ['src/js/debug.js', 'src/js/cache.js', 'src/js/storage.js', 'src/js/note.js', 'src/js/main.js'],
-          dest: 'js/<%= pkg.name %>.js',
+          dest: 'dist/js/<%= pkg.name %>.js',
         },
       },
       copy: {
           lib: {
               files: [
-                {src:'node_modules/popper.js/dist/popper.min.js', dest:'js/popper.min.js'},
-                {src:'node_modules/bootstrap/dist/js/bootstrap.min.js', dest:'js/bootstrap.min.js'},
-                {src:'node_modules/bootstrap/dist/css/bootstrap.min.css', dest:'css/bootstrap.min.css'}
+                {src: 'node_modules/popper.js/dist/popper.min.js', dest:'dist/js/popper.min.js'},
+                {src: 'node_modules/bootstrap/dist/js/bootstrap.min.js', dest:'dist/js/bootstrap.min.js'},
+                {src: 'node_modules/bootstrap/dist/js/bootstrap.min.js.map', dest: 'dist/js/bootstrap.min.js.map'},
+                {src: 'node_modules/bootstrap/dist/css/bootstrap.min.css', dest:'dist/css/bootstrap.min.css'}
 
               ]
           },
           src: {
-            files: [{src:'src/css/styles.css', dest:'css/<%= pkg.name %>.css'}]
+            files: [{src: 'src/css/styles.css', dest: 'dist/css/<%= pkg.name %>.css'}]
           }
       },
       watch: {

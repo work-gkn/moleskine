@@ -1,21 +1,15 @@
 /**
  * Module to generate a Message in a toaster
- * @module oDebug
- * @exports setText
  */
-var oDebug = (function () {
-  let fSetText,
-    fCreateOutput,
-    fShow;
-
+var mDebug = (function () {
   /**
    * inits and shows the toaster. This is taken from bootstrap documentation
    */
-  fShow = function() {
+  const fShow = function() {
     try {
-      let toastElList = [].slice.call(document.querySelectorAll('.toast'))
+      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
       let toastList = toastElList.map(function (toastEl) {
-        return new self.bootstrap.Toast(toastEl, {delay:1500})
+        return new self.bootstrap.Toast(toastEl, {delay:1500});
       });
       for (const toast of toastList) {
         toast.show();
@@ -27,9 +21,9 @@ var oDebug = (function () {
 
   /**
    * Defines the toster and set it into the right position in DOM
-   * @param {String} sText Text that should be shown in toaster
+   * @param {string} sText Text that should be shown in toaster
    */
-  fCreateOutput = function(sText) {
+  const fCreateOutput = function(sText) {
     if (typeof sText !== 'string' || sText === '') {
       self.console.warn('Format of parameter was not correct');
       return;
@@ -58,15 +52,15 @@ var oDebug = (function () {
       eDvTst.remove();
     });
 
-    eCntner.appendChild(eDvTst)
+    eCntner.appendChild(eDvTst);
   };
 
   /**
    * Gets a text to show in the toaster.
-   * @param {String} sText Message, that could be set to the debug body
+   * @param {string} sText Message, that could be set to the debug body
    */
-  fSetText = function (sText) {
-    if (typeof sText === 'string' && sText !== "") {
+  const fSetText = function (sText) {
+    if (typeof sText === 'string' && sText !== '') {
       fCreateOutput(sText);
       fShow();
     } else {
@@ -79,150 +73,148 @@ var oDebug = (function () {
     setText: fSetText
   };
 })();
+
 /**
  * Module for setting cache operations
- * @module oCache
- * @exports init
  */
-var oCache = (function () {
-  let fInit;
+var mCache = (function (mDebug) {
+  if (typeof mDebug === 'undefined') {
+    return;
+  }
+  // import
+  const fSetText = mDebug.setText; 
 
   /**
    * Init the debug information for the caching events
    */
-  fInit = function () {
+  const fInit = function () {
     let oAppCache = self.applicationCache;
 
     if (!oAppCache) {
-      self.console.warn('No applicationCache available!')
+      self.console.warn('No applicationCache available!');
       return;
     }
-    oAppCache.addEventListener('checking', () => oDebug.setText('Check the cache ...'));
-    oAppCache.addEventListener('noupdate', () => oDebug.setText('No cache update necessary'));
-    oAppCache.addEventListener('downloading', () => oDebug.setText('Update the cache ...'));
-    oAppCache.addEventListener('progress', () => oDebug.setText('Download file ...'));
-    oAppCache.addEventListener('updateready', () => oDebug.setText('Cache update ready ...'));
-    oAppCache.addEventListener('cached', () => oDebug.setText('Cache is up-to-date'));
-    oAppCache.addEventListener('obsolete', () => oDebug.setText('Cache is obsolete'));
-    oAppCache.addEventListener('error', (e) => oDebug.setText('Problem with Cache: ' + e));
-  }
+    oAppCache.addEventListener('checking', () => fSetText('Check the cache ...'));
+    oAppCache.addEventListener('noupdate', () => fSetText('No cache update necessary'));
+    oAppCache.addEventListener('downloading', () => fSetText('Update the cache ...'));
+    oAppCache.addEventListener('progress', () => fSetText('Download file ...'));
+    oAppCache.addEventListener('updateready', () => fSetText('Cache update ready ...'));
+    oAppCache.addEventListener('cached', () => fSetText('Cache is up-to-date'));
+    oAppCache.addEventListener('obsolete', () => fSetText('Cache is obsolete'));
+    oAppCache.addEventListener('error', (e) => fSetText('Problem with Cache: ' + e));
+  };
 
   // Set the public methods
   return {
     init: fInit
   };
-})();
+})(self.mDebug);
 /**
  * Module to interact with localStorage
- * @module oStorage
- * @exports set
- * @exports getAll
- * @exports remove
  */
-var oStorage = (function () {
-    let fRemove,
-      fGetAll,
-      fSet;
+var mStorage = (function (mDebug) {
+  if (typeof self.mDebug === 'undefined') {
+    return;
+  }
+  // import
+  const fSetText = mDebug.setText;
   
-    /**
-     * Sets the given parameters into localstorage
-     * @param {String} sKey The key for the local storage
-     * @param {String} sValue Content to store
-     */
-    fSet = function (sKey, sValue) {
-      if (typeof sKey !== 'string' || sKey === '') {
-        self.console.warn('Format of parameter sKey is not correct');
-        return false;
+  /**
+   * Sets the given parameters into localstorage
+   * @param {String} sKey The key for the local storage
+   * @param {String} sValue Content to store
+   */
+  const fSet = function (sKey, sValue) {
+    if (typeof sKey !== 'string' || sKey === '') {
+      self.console.warn('Format of parameter sKey is not correct');
+      return false;
+    }
+
+    if (typeof sValue !== 'string' || sValue === '') {
+      self.console.warn('Format of parameter sValue is not correct');
+      return false;
+    }
+
+    try {
+      localStorage.setItem(sKey, sValue);
+      if (sKey !== 'author') {
+        fSetText('Entry saved locally');
       }
+      return true;
+    } catch (e) {
+      fSetText('Error while saving: ' + e);
+      return false;
+    }
+  };
   
-      if (typeof sValue !== 'string' || sValue === '') {
-        self.console.warn('Format of parameter sValue is not correct');
-        return false;
+  /**
+   * Get all entries from local storage. The returned array contains the 
+   * entries in descending order. 
+   * @returns {Array} Array with objects of entries
+   */
+  const fGetAll = function () {
+    let aKeys = [],
+      aValues = [];
+
+    for (let i = 0; i < localStorage.length; i = i + 1) {
+      aKeys.push(localStorage.key(i));
+    }
+    // sort the key after the timestamp and bring it in descending order
+    aKeys = aKeys.sort();
+    for (let i = aKeys.length; i-- > 0;) {
+      let sKey = aKeys[i],
+        sValue = localStorage.getItem(sKey);
+      if (sValue) {
+        aValues.push({key: sKey, value: sValue});
+      } else {
+        continue;
       }
+    }
+    return aValues;
+  };
+
+  /**
+   * Removes a item from localStorage by given id
+   * @param {String} sId The key in localStorage to remove
+   * @returns {Boolean} If operation was successfull or not
+   */
+  const fRemove = function (sId) {
+    if (typeof sId !== 'string' || sId === '') {
+      self.console.warn('Format of parameter sId was not correct');
+      return false;
+    }
+    try {
+      localStorage.removeItem(sId);
+      fSetText('Entry deleted locally');
+      return true;
+    } catch (e) {
+      fSetText('Error while deleting: ' + e);
+      return false;
+    }
+  };
   
-      try {
-        localStorage.setItem(sKey, sValue);
-        if (sKey !== 'author') {
-          oDebug.setText('Entry saved locally');
-  
-        }
-        return true;
-      } catch (e) {
-        oDebug.setText('Error while saving: ' + e);
-        return false;
-      }
-    };
-    
-    /**
-     * Get all entries from local storage. The returned array contains the 
-     * entries in descending order. 
-     * @returns {Array} Array with objects of entries
-     */
-    fGetAll = function () {
-      let aKeys = [],
-        aValues = [];
-  
-      for (let i = 0; i < localStorage.length; i = i + 1) {
-        aKeys.push(localStorage.key(i));
-      }
-      // sort the key after the timestamp and bring it in descending order
-      aKeys = aKeys.sort();
-      for (let i = aKeys.length; i-- > 0;) {
-        let sKey = aKeys[i],
-          sValue = localStorage.getItem(sKey);
-        
-        if (sValue) {
-          aValues.push({key: sKey, value: sValue});
-        } else {
-          continue;
-        }
-      }
-      return aValues;
-    };
-  
-    /**
-     * Removes a item from localStorage by given id
-     * @param {String} sId The key in localStorage to remove
-     * @returns {Boolean} If operation was successfull or not
-     */
-    fRemove = function (sId) {
-      if (typeof sId !== 'string' || sId === '') {
-        self.console.warn('Format of parameter sId was not correct');
-        return false;
-      }
-  
-      try {
-        localStorage.removeItem(sId);
-        oDebug.setText('Entry deleted locally');
-        return true;
-      } catch (e) {
-        oDebug.setText('Error while deleting: ' + e);
-        return false;
-      }
-    };
-  
-    return {
-      getAll: fGetAll,
-      remove: fRemove,
-      set: fSet
-    };
-  })();
+  // Set the public methods 
+  return {
+    getAll: fGetAll,
+    remove: fRemove,
+    set: fSet
+  };
+})(self.mDebug);
 /**
- * Module to handle the note items
- * @module oNotes
- * @exports init
- * @exports save
+ * Module to handle the notes
  */
-var oNotes = (function () {
+var mNotes = (function (mDebug, mStorage) {
+  if (typeof mDebug === 'undefined' || typeof mStorage === 'undefined') {
+    return;
+  }
+  // import
+  const fSetText = mDebug.setText,
+    fGetAll = mStorage.getAll,
+    fRemove = mStorage.remove,
+    fSet = mStorage.set;
+  
   let bStorage = true,
     eUl = document.getElementById('containerNotes'),
-    fCreate,
-    fDateToString,
-    fDelete,
-    fInit,
-    fReadStore, 
-    fSave,
-    fUpdateTimeElement,
     sDefaultAuthor = '',
     sDefaultText = '';
 
@@ -233,7 +225,7 @@ var oNotes = (function () {
    *                         1 = For output in frontend
    *                         2 = For insert into datetime attribute
    */
-  fDateToString = function (oDate, nFormat = 1) {
+  const fDateToString = function (oDate, nFormat = 1) {
     let fPad,
       sDate,
       sTime;
@@ -265,7 +257,7 @@ var oNotes = (function () {
    * @param {String} sValueText   Text to set in the textnode of time element
    * @param {String} sValueAttrib Text to set into the datetime attribute of time element
    */
-  fUpdateTimeElement = function (sValueText, sValueAttrib) {
+  const fUpdateTimeElement = function (sValueText, sValueAttrib) {
     if (typeof sValueText !== 'string' || sValueText === '') {
       self.console.warn('Wrong format for parameter sValueText');
       return;
@@ -289,7 +281,7 @@ var oNotes = (function () {
    * @param {String} sId ID that should be tried to remove from localStorage
    * @returns {Boolean} If deletion was successful or not
    */
-  fDelete = function(sId) {
+  const fDelete = function(sId) {
     if (typeof sId !== 'string' || sId === '') {
       self.console.log('Wrong format for parameter sId');
       return false;
@@ -299,7 +291,7 @@ var oNotes = (function () {
       oDate = new Date();
 
     if (bQuestion && bStorage) {
-      bQuestion = oStorage.remove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
+      bQuestion = fRemove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
     }
     
     if (bQuestion) {
@@ -314,7 +306,7 @@ var oNotes = (function () {
    * @param {String} sText   Text for li element
    * @param {Boolean} bFirst Item should be set on top
    */
-  fCreate = function(sId, sText, bFirst = false) {
+  const fCreate = function(sId, sText, bFirst = false) {
     let oDate = new Date(sId),
       eLi = document.createElement('li'),
       eDiv = document.createElement('div'),
@@ -329,7 +321,7 @@ var oNotes = (function () {
 
     eBtn.setAttribute('type', 'button');
     eBtn.classList.add('btn', 'btn-danger', 'destroy');
-    eBtn.appendChild(document.createTextNode('Delete'))
+    eBtn.appendChild(document.createTextNode('Delete'));
 
     eDiv.appendChild(eStr);
     eDiv.appendChild(eP);
@@ -361,7 +353,7 @@ var oNotes = (function () {
    * @param {String} sAuthor Content from h2 element
    * @returns {Boolean} Save in localStorage was successful or not
    */
-  fSave = function(sEntry, sAuthor) {
+  const fSave = function(sEntry, sAuthor) {
     let bSuccess = true, // When no localStorage is available, set only to DOM
       oDate = new Date(),
       nKey = oDate.getTime();
@@ -372,9 +364,9 @@ var oNotes = (function () {
 
     if (bStorage) {
       if (sAuthor !== sDefaultAuthor) {
-        bSuccess = oStorage.set('author', sAuthor);
+        bSuccess = fSet('author', sAuthor);
       }
-      bSuccess = oStorage.set(nKey.toString(), sEntry);
+      bSuccess = fSet(nKey.toString(), sEntry);
     }
     if (bSuccess) {
       fCreate(nKey, sEntry, true);
@@ -387,8 +379,8 @@ var oNotes = (function () {
    * Get entries from Storage and writes the information for each item into DOM
    * @returns {String} value read from aEntries with key author or an empty string
    */
-  fReadStore = function () {
-    let aEntries = oStorage.getAll(),
+  const fReadStore = function () {
+    let aEntries = fGetAll(),
       bUpdate = true,
       oDate = new Date(),
       sAuthor = '';
@@ -421,7 +413,7 @@ var oNotes = (function () {
    * @param {String} sAuthorDef The default text in h2 element
    * @returns {String} Content from fReadstore or h2 element 
    */
-  fInit = function(sTextDef, sAuthorDef) {
+  const fInit = function(sTextDef, sAuthorDef) {
     let oDate = new Date(),
       sAuthor = '';
 
@@ -429,7 +421,7 @@ var oNotes = (function () {
     fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
   
     if (typeof(self.localStorage) === 'undefined') {
-      oDebug.setText('No localStorage!');
+      fSetText('No localStorage!');
       bStorage = false;
     } else {
       sAuthor = fReadStore();
@@ -455,36 +447,46 @@ var oNotes = (function () {
     init: fInit,
     save: fSave,
   };
-})();
-"use strict";
+})(self.mDebug, self.mStorage);
 
 // Starts to initialize the site
-(function () {
-  "use strict";
+(function (mDebug, mNotes) {
+  'use strict';
+  if (typeof mDebug === 'undefined' || typeof mNotes === 'undefined') {
+    self.console.error('Missing module mDebug or mNotes');
+    return;
+  }
+  
+  // import
+  const fSetText = mDebug.setText,
+    fInit = mNotes.init,
+    fSave = mNotes.save;
+  
   let bClean = false,
     eAuthor = document.getElementById('author'),
     eBtn = document.getElementById('save'),
-    eText = document.getElementById('textarea'),
-    fCleanUp;
-
-  // Clean up the textarea
-  fCleanUp = function () {
-      if (bClean) {
-        return;
-      }
-      eText.value = '';
-      bClean = true;
+    eText = document.getElementById('textarea');
+  
+  /**
+   * Clean up the textarea from text
+   */
+  const fCleanUp = function () {
+    if (bClean) {
+      return;
+    }
+    eText.value = '';
+    bClean = true;
   };
   
-  self.addEventListener('online', () => oDebug.setText('on the web'));
-  self.addEventListener('offline', () => oDebug.setText('off the web'));
+  self.addEventListener('online', () => fSetText('on the web'));
+  self.addEventListener('offline', () => fSetText('off the web'));
 
   if (navigator.onLine) {
-    oDebug.setText('on the web');
+    fSetText('on the web');
   } else {
-    oDebug.setText('off the web');
+    fSetText('off the web');
   }
-  oCache.init();
+  // oCache.init();
 
   eAuthor.addEventListener('click', () => eAuthor.firstChild.nodeValue = '');
 
@@ -492,11 +494,11 @@ var oNotes = (function () {
   eText.addEventListener('focus', () => fCleanUp());
 
   eBtn.addEventListener('click', () => {
-    if (oNotes.save(eText.value, eAuthor.firstChild.nodeValue)) {
+    if (fSave(eText.value, eAuthor.firstChild.nodeValue)) {
       bClean = false;
     }
     eText.focus();
   });
 
-  eAuthor.firstChild.nodeValue = oNotes.init(eText.value, eAuthor.firstChild.nodeValue);
-})();
+  eAuthor.firstChild.nodeValue = fInit(eText.value, eAuthor.firstChild.nodeValue);
+})(self.mDebug, self.mNotes);
