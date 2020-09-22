@@ -5,7 +5,7 @@ It takes notes and stores them into the LocalStorage of the browser. It is possi
 
 Has a toaster that displays information about the application.
 
-The javascript (dist/js/moleskine.js) is divided into two parts:
+The javascript (./dist/js/moleskine.js) is divided into two parts:
 1. definition of all necessary parts with the help of "Module (Tight) Augmentation".
 2. initialising the page with Immediatly-Invoked Function Expression
 
