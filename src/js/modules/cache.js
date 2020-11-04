@@ -1,7 +1,7 @@
 /**
  * Module for setting cache operations
  */
-var mCache = (function (mDebug) {
+self.mCache = (function (mDebug) {
   if (typeof mDebug === 'undefined') {
     return;
   }

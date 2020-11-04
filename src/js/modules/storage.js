@@ -1,7 +1,7 @@
 /**
  * Module to interact with localStorage
  */
-var mStorage = (function (mDebug) {
+self.mStorage = (function (mDebug) {
   if (typeof self.mDebug === 'undefined') {
     return;
   }

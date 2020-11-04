@@ -1,7 +1,7 @@
 /**
  * Module to handle the notes
  */
-var mNotes = (function (mDebug, mStorage) {
+self.mNotes = self.mNotes || (function (mDebug, mStorage) {
   if (typeof mDebug === 'undefined' || typeof mStorage === 'undefined') {
     return;
   }
@@ -93,27 +93,30 @@ var mNotes = (function (mDebug, mStorage) {
     }
     
     if (bQuestion) {
+      // getDateTime()
       fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
+      
     }
     return bQuestion;
   };
 
   /**
    * Creates the note item to include it in the DOM
-   * @param {String} sId     Id for li element
-   * @param {String} sText   Text for li element
-   * @param {Boolean} bFirst Item should be set on top
+   * @param {number} nId     Id for li element
+   * @param {string} sText   Text for li element
+   * @param {boolean} bFirst Item should be set on top
    */
-  const fCreate = function(sId, sText, bFirst = false) {
-    let oDate = new Date(sId),
+  const fCreate = function(nId, sText, bFirst = false) {
+    let oDate = new Date(nId),
       eLi = document.createElement('li'),
       eDiv = document.createElement('div'),
       eStr = document.createElement('strong'),
       eP = document.createElement('p'),
       eBtn = document.createElement('button'),
       sDate = fDateToString(oDate, 1);
+      // getDateTime(nId)
 
-    eStr.appendChild(document.createTextNode(sDate)); // hier noch Datum aus id!
+    eStr.appendChild(document.createTextNode(sDate));
 
     eP.appendChild(document.createTextNode(sText));
 
@@ -126,7 +129,7 @@ var mNotes = (function (mDebug, mStorage) {
     eDiv.appendChild(eBtn);
 
     eLi.classList.add('list-group-item');
-    eLi.setAttribute('id', sId);
+    eLi.setAttribute('id', nId);
     
     eBtn.addEventListener('click', () => { 
       if(fDelete(eLi.attributes.id.value)) {
@@ -155,6 +158,7 @@ var mNotes = (function (mDebug, mStorage) {
     let bSuccess = true, // When no localStorage is available, set only to DOM
       oDate = new Date(),
       nKey = oDate.getTime();
+      // getDateTime()
 
     if (sEntry === '' || sEntry === sDefaultText) {
       return false;
@@ -185,7 +189,8 @@ var mNotes = (function (mDebug, mStorage) {
     
     for (let i = 0; i < aEntries.length; i = i + 1) {
       let oEntry = aEntries[i],
-        nCheck = parseInt(oEntry.key, 10);  
+        nCheck = parseInt(oEntry.key, 10);
+        //getDateTime(nCheck)
 
       if (isNaN(nCheck)) {
         if (oEntry.key === 'author') {
@@ -216,7 +221,7 @@ var mNotes = (function (mDebug, mStorage) {
       sAuthor = '';
 
     // To set current date in case localStorage has no entries
-    fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
+    // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
   
     if (typeof(self.localStorage) === 'undefined') {
       fSetText('No localStorage!');

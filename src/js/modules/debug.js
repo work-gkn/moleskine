@@ -1,7 +1,7 @@
 /**
  * Module to generate a Message in a toaster
  */
-var mDebug = (function () {
+self.mDebug = (function () {
   /**
    * inits and shows the toaster. This is taken from bootstrap documentation
    */
