@@ -1,35 +1,29 @@
 /**
  * Module for setting cache operations
  */
-self.mCache = (function (mDebug) {
-  if (typeof mDebug === 'undefined') {
-    return;
+class CacheModule extends EmitterModule {
+  constructor(appCache) {
+    super();
+    this.appCache = appCache;
   }
-  // import
-  const fSetText = mDebug.setText; 
 
-  /**
-   * Init the debug information for the caching events
-   */
-  const fInit = function () {
-    let oAppCache = self.applicationCache;
+  emitTextChange(sText) {
+    this.emit("updateCacheEvent", sText);
+  }
 
-    if (!oAppCache) {
+  init() {
+    if (!this.appCache) {
       self.console.warn('No applicationCache available!');
       return;
     }
-    oAppCache.addEventListener('checking', () => fSetText('Check the cache ...'));
-    oAppCache.addEventListener('noupdate', () => fSetText('No cache update necessary'));
-    oAppCache.addEventListener('downloading', () => fSetText('Update the cache ...'));
-    oAppCache.addEventListener('progress', () => fSetText('Download file ...'));
-    oAppCache.addEventListener('updateready', () => fSetText('Cache update ready ...'));
-    oAppCache.addEventListener('cached', () => fSetText('Cache is up-to-date'));
-    oAppCache.addEventListener('obsolete', () => fSetText('Cache is obsolete'));
-    oAppCache.addEventListener('error', (e) => fSetText('Problem with Cache: ' + e));
-  };
-
-  // Set the public methods
-  return {
-    init: fInit
-  };
-})(self.mDebug);
+    
+    this.appCache.addEventListener('checking', () => this.emitTextChange('Check the cache ...'));
+    this.appCache.addEventListener('noupdate', () => this.emitTextChange('No cache update necessary'));
+    this.appCache.addEventListener('downloading', () => this.emitTextChange('Update the cache ...'));
+    this.appCache.addEventListener('progress', () => this.emitTextChange('Download file ...'));
+    this.appCache.addEventListener('updateready', () => this.emitTextChange('Cache update ready ...'));
+    this.appCache.addEventListener('cached', () => this.emitTextChange('Cache is up-to-date'));
+    this.appCache.addEventListener('obsolete', () => this.emitTextChange('Cache is obsolete'));
+    this.appCache.addEventListener('error', (e) => this.emitTextChange('Problem with Cache: ' + e));
+  }
+}

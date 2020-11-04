@@ -1,7 +1,7 @@
 /**
  * Module to handle the notes
  */
-self.mNotes = self.mNotes || (function (mDebug, mStorage) {
+self.mNotes = (function (mDebug, mStorage) {
   if (typeof mDebug === 'undefined' || typeof mStorage === 'undefined') {
     return;
   }
