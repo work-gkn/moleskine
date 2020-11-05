@@ -120,8 +120,9 @@ class InfoModule {
       eDvTst.remove();
     });
 
-    eCntner.appendChild(eDvTst);
-    this.show();
+    if (eCntner.appendChild(eDvTst)) {
+      this.show();
+    }
   }
 
   /**
