@@ -8,7 +8,7 @@ class CacheModule extends EmitterModule {
   }
 
   emitTextChange(sText) {
-    this.emit("updateCacheEvent", sText);
+    this.emit('updateCacheEvent', sText);
   }
 
   init() {

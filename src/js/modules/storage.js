@@ -89,3 +89,51 @@ self.mStorage = (function (mDebug) {
     set: fSet
   };
 })(self.mDebug);
+
+/* The same as Class  */
+class StorageModule extends EmitterModule {
+  constructor() {
+    super();
+  }
+
+  /* Emitter to set a text into the toastr */
+  emitStorageDebug(sText) {
+    this.emit('storageDebugText', sText);
+  }
+
+  /**
+   * Sets the given parameters into localstorage
+   * @param {String} sKey The key for the local storage
+   * @param {String} sValue Content to store
+   */
+  save(sKey, sValue) { // should be handled as async 
+    if (typeof sKey !== 'string' || sKey === '') {
+      self.console.warn('Format of parameter sKey is not correct');
+      return false;
+    }
+
+    if (typeof sValue !== 'string' || sValue === '') {
+      self.console.warn('Format of parameter sValue is not correct');
+      return false;
+    }
+
+    try {
+      localStorage.setItem(sKey, sValue);
+      if (sKey !== 'author') {
+        this.emitStorageDebug('Entry saved locally');
+      }
+      return true;
+    } catch (e) {
+      this.emitStorageDebug('Error while saving: ' + e);
+      return false;
+    }
+  }
+
+  getList() {
+
+  }
+
+  remove(sId) {
+
+  }
+}

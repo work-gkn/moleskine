@@ -251,3 +251,96 @@ self.mNotes = (function (mDebug, mStorage) {
     save: fSave,
   };
 })(self.mDebug, self.mStorage);
+
+/* The same as class */
+class NoteModule extends EmitterModule {
+  constructor (eUl) {
+    super();
+    this.bStorage = true,
+    this.eUl = eUl,
+    this.sDefaultAuthor = '',
+    this.sDefaultText = '';
+  }
+
+  /* Emitter to set a text into the toastr */
+  emitNoteDebug(sText) {
+    this.emit('noteDebugText', sText);
+  }
+
+  emitNoteSaveStorage(sKey, sValue) {
+    this.emit('noteSaveStorage', sKey, sValue);
+  }
+
+  delete() {
+
+  }
+
+  create() {
+
+  }
+  /**
+   * Get the content for the note and creates new elements to include in DOM
+   * @param {String} sEntry  Content from textarea
+   * @param {String} sAuthor Content from h2 element
+   * @returns {Boolean} Save in localStorage was successful or not
+   */
+  save(sEntry, sAuthor) {  //Should be handle a async 
+    let bSuccess = true, // When no localStorage is available, set only to DOM
+      oDate = new Date(),
+      nKey = oDate.getTime();
+
+    if (sEntry === '' || sEntry === this.sDefaultText) {
+      return false;
+    }
+
+    if (this.bStorage) {
+      if (sAuthor !== this.sDefaultAuthor) {
+        bSuccess = this.emitNoteSaveStorage('author', sAuthor);
+      }
+      bSuccess = this.emitNoteSaveStorage(nKey.toString(), sEntry);
+    }
+    if (bSuccess) {
+      // fCreate(nKey, sEntry, true);
+      // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
+    }
+    return bSuccess;
+  }
+
+  readStore() {
+
+  }
+  /**
+   * Init the module. Reads information from localstorage and add existing items.
+   * @param {String} sTextDef   The existing text in textarea
+   * @param {String} sAuthorDef The default text in h2 element
+   * @returns {String} Content from fReadstore or h2 element 
+   */
+  init(sTextDef, sAuthorDef) {
+    let oDate = new Date(),
+      sAuthor = '';
+
+    // To set current date in case localStorage has no entries
+    // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
+  
+    if (typeof(self.localStorage) === 'undefined') {
+      this.emitNoteDebug('No localStorage!');
+      this.bStorage = false;
+    } else {
+      console.log('sAuthor = fReadStore()');
+    }
+
+    if (typeof sTextDef === 'string') {
+      this.sDefaultText = sTextDef;
+    }
+
+    if (typeof(sAuthorDef) === 'string') {
+      this.sDefaultAuthor = sAuthorDef;
+    }
+
+    if (sAuthor === '') {
+      return sAuthorDef;
+    } else {
+      return sAuthor;
+    }
+  }
+}

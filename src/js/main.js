@@ -2,11 +2,21 @@
 // Starts to initialize the site
 (function () {
   'use strict';
-  const debugModule = new DebugModule();
-  
+  const debugModule = new DebugModule(),
+    storageModule = new StorageModule(),
+    noteModule = new NoteModule(document.getElementById('containerNotes'));
+
+  // CacheModule as an example. Can be removed later.
   const cacheModule = new CacheModule(self.applicationCache);
-  cacheModule.on("updateCacheEvent", sText => debugModule.setText(sText));
+  cacheModule.on('updateCacheEvent', sText => debugModule.setText(sText));
   cacheModule.init();
+
+  // Init all emitter
+  storageModule.on('storageDebugText', sText => debugModule.setText(sText));
+  noteModule.on('noteDebugText', sText => debugModule.setText(sText));
+  noteModule.on('noteSaveStorage', (sKey, sValue) => storageModule.save(sKey, sValue));
+
+  //init methods 
 
   // import
   const fInit = self.mNotes.init,
@@ -44,11 +54,13 @@
   eText.addEventListener('focus', () => fCleanUp());
 
   eBtn.addEventListener('click', () => {
-    if (fSave(eText.value, eAuthor.firstChild.nodeValue)) {
+    //if (fSave(eText.value, eAuthor.firstChild.nodeValue)) {
+    if (noteModule.save(eText.value, eAuthor.firstChild.nodeValue)) {
       bClean = false;
     }
     eText.focus();
   });
 
-  eAuthor.firstChild.nodeValue = fInit(eText.value, eAuthor.firstChild.nodeValue);
+  //eAuthor.firstChild.nodeValue = fInit(eText.value, eAuthor.firstChild.nodeValue);
+  eAuthor.firstChild.nodeValue = noteModule.init(eText.value, eAuthor.firstChild.nodeValue);
 })();
