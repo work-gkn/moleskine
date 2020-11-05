@@ -7,8 +7,9 @@ class CacheModule extends EmitterModule {
     this.appCache = appCache;
   }
 
-  emitTextChange(sText) {
-    this.emit('updateCacheEvent', sText);
+  setInfoText(sText) {
+    const infoModule = new InfoModule();
+    infoModule.setText(sText);
   }
 
   init() {
@@ -17,13 +18,15 @@ class CacheModule extends EmitterModule {
       return;
     }
     
-    this.appCache.addEventListener('checking', () => this.emitTextChange('Check the cache ...'));
-    this.appCache.addEventListener('noupdate', () => this.emitTextChange('No cache update necessary'));
-    this.appCache.addEventListener('downloading', () => this.emitTextChange('Update the cache ...'));
-    this.appCache.addEventListener('progress', () => this.emitTextChange('Download file ...'));
-    this.appCache.addEventListener('updateready', () => this.emitTextChange('Cache update ready ...'));
-    this.appCache.addEventListener('cached', () => this.emitTextChange('Cache is up-to-date'));
-    this.appCache.addEventListener('obsolete', () => this.emitTextChange('Cache is obsolete'));
-    this.appCache.addEventListener('error', (e) => this.emitTextChange('Problem with Cache: ' + e));
+    this.appCache.addEventListener('checking', () => this.setInfoText('Check the cache ...'));
+    this.appCache.addEventListener('noupdate', () => this.setInfoText('No cache update necessary'));
+    this.appCache.addEventListener('downloading', () => this.setInfoText('Update the cache ...'));
+    this.appCache.addEventListener('progress', () => this.setInfoText('Download file ...'));
+    this.appCache.addEventListener('updateready', () => this.setInfoText('Cache update ready ...'));
+    this.appCache.addEventListener('cached', () => this.setInfoText('Cache is up-to-date'));
+    this.appCache.addEventListener('obsolete', () => this.setInfoText('Cache is obsolete'));
+    this.appCache.addEventListener('error', (e) => this.setInfoText('Problem with Cache: ' + e));
+    
+   
   }
 }

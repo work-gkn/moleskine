@@ -257,18 +257,16 @@ class NoteModule extends EmitterModule {
   constructor (eUl) {
     super();
     this.bStorage = true,
+    this.storageModule = new StorageModule(),
     this.eUl = eUl,
     this.sDefaultAuthor = '',
     this.sDefaultText = '';
   }
 
   /* Emitter to set a text into the toastr */
-  emitNoteDebug(sText) {
-    this.emit('noteDebugText', sText);
-  }
-
-  emitNoteSaveStorage(sKey, sValue) {
-    this.emit('noteSaveStorage', sKey, sValue);
+  setInfoText(sText) {
+    const infoModule = new InfoModule();
+    infoModule.setText(sText);
   }
 
   delete() {
@@ -295,9 +293,9 @@ class NoteModule extends EmitterModule {
 
     if (this.bStorage) {
       if (sAuthor !== this.sDefaultAuthor) {
-        bSuccess = this.emitNoteSaveStorage('author', sAuthor);
+        bSuccess = this.storageModule.save('author', sAuthor);
       }
-      bSuccess = this.emitNoteSaveStorage(nKey.toString(), sEntry);
+      bSuccess = this.storageModule.save(nKey.toString(), sEntry);
     }
     if (bSuccess) {
       // fCreate(nKey, sEntry, true);
@@ -323,7 +321,7 @@ class NoteModule extends EmitterModule {
     // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
   
     if (typeof(self.localStorage) === 'undefined') {
-      this.emitNoteDebug('No localStorage!');
+      this.setInfoText('No localStorage!');
       this.bStorage = false;
     } else {
       console.log('sAuthor = fReadStore()');

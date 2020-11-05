@@ -76,7 +76,7 @@ self.mDebug = (function () {
 
 
 /* the same as Module */
-class DebugModule {
+class InfoModule {
   constructor() {
     this.toastrText = '';
   }
@@ -121,6 +121,7 @@ class DebugModule {
     });
 
     eCntner.appendChild(eDvTst);
+    this.show();
   }
 
   /**
@@ -135,6 +136,5 @@ class DebugModule {
     }
     this.toastrText = sText;
     this.createOutput();
-    this.show();
   }
 }

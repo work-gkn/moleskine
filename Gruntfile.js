@@ -4,7 +4,7 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       src: {
-        src: ['src/js/modules/emitter.js','src/js/modules/debug.js', 'src/js/modules/cache.js', 'src/js/modules/storage.js', 'src/js/modules/note.js', 'src/js/main.js'],
+        src: ['src/js/modules/emitter.js','src/js/modules/info.js', 'src/js/modules/cache.js', 'src/js/modules/storage.js', 'src/js/modules/note.js', 'src/js/main.js'],
         dest: 'dist/js/<%= pkg.name %>.js',
       },
     },

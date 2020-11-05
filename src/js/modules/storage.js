@@ -97,8 +97,9 @@ class StorageModule extends EmitterModule {
   }
 
   /* Emitter to set a text into the toastr */
-  emitStorageDebug(sText) {
-    this.emit('storageDebugText', sText);
+  setInfoText(sText) {
+    const infoModule = new InfoModule();
+    infoModule.setText(sText);
   }
 
   /**
@@ -120,11 +121,11 @@ class StorageModule extends EmitterModule {
     try {
       localStorage.setItem(sKey, sValue);
       if (sKey !== 'author') {
-        this.emitStorageDebug('Entry saved locally');
+        this.setInfoText('Entry saved locally');
       }
       return true;
     } catch (e) {
-      this.emitStorageDebug('Error while saving: ' + e);
+      this.setInfoText('Error while saving: ' + e);
       return false;
     }
   }

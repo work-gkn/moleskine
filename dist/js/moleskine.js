@@ -111,7 +111,7 @@ self.mDebug = (function () {
 
 
 /* the same as Module */
-class DebugModule {
+class InfoModule {
   constructor() {
     this.toastrText = '';
   }
@@ -156,6 +156,7 @@ class DebugModule {
     });
 
     eCntner.appendChild(eDvTst);
+    this.show();
   }
 
   /**
@@ -170,7 +171,6 @@ class DebugModule {
     }
     this.toastrText = sText;
     this.createOutput();
-    this.show();
   }
 }
 /**
@@ -182,8 +182,9 @@ class CacheModule extends EmitterModule {
     this.appCache = appCache;
   }
 
-  emitTextChange(sText) {
-    this.emit('updateCacheEvent', sText);
+  setInfoText(sText) {
+    const infoModule = new InfoModule();
+    infoModule.setText(sText);
   }
 
   init() {
@@ -192,14 +193,16 @@ class CacheModule extends EmitterModule {
       return;
     }
     
-    this.appCache.addEventListener('checking', () => this.emitTextChange('Check the cache ...'));
-    this.appCache.addEventListener('noupdate', () => this.emitTextChange('No cache update necessary'));
-    this.appCache.addEventListener('downloading', () => this.emitTextChange('Update the cache ...'));
-    this.appCache.addEventListener('progress', () => this.emitTextChange('Download file ...'));
-    this.appCache.addEventListener('updateready', () => this.emitTextChange('Cache update ready ...'));
-    this.appCache.addEventListener('cached', () => this.emitTextChange('Cache is up-to-date'));
-    this.appCache.addEventListener('obsolete', () => this.emitTextChange('Cache is obsolete'));
-    this.appCache.addEventListener('error', (e) => this.emitTextChange('Problem with Cache: ' + e));
+    this.appCache.addEventListener('checking', () => this.setInfoText('Check the cache ...'));
+    this.appCache.addEventListener('noupdate', () => this.setInfoText('No cache update necessary'));
+    this.appCache.addEventListener('downloading', () => this.setInfoText('Update the cache ...'));
+    this.appCache.addEventListener('progress', () => this.setInfoText('Download file ...'));
+    this.appCache.addEventListener('updateready', () => this.setInfoText('Cache update ready ...'));
+    this.appCache.addEventListener('cached', () => this.setInfoText('Cache is up-to-date'));
+    this.appCache.addEventListener('obsolete', () => this.setInfoText('Cache is obsolete'));
+    this.appCache.addEventListener('error', (e) => this.setInfoText('Problem with Cache: ' + e));
+    
+   
   }
 }
 /**
@@ -301,8 +304,9 @@ class StorageModule extends EmitterModule {
   }
 
   /* Emitter to set a text into the toastr */
-  emitStorageDebug(sText) {
-    this.emit('storageDebugText', sText);
+  setInfoText(sText) {
+    const infoModule = new InfoModule();
+    infoModule.setText(sText);
   }
 
   /**
@@ -324,11 +328,11 @@ class StorageModule extends EmitterModule {
     try {
       localStorage.setItem(sKey, sValue);
       if (sKey !== 'author') {
-        this.emitStorageDebug('Entry saved locally');
+        this.setInfoText('Entry saved locally');
       }
       return true;
     } catch (e) {
-      this.emitStorageDebug('Error while saving: ' + e);
+      this.setInfoText('Error while saving: ' + e);
       return false;
     }
   }
@@ -600,18 +604,16 @@ class NoteModule extends EmitterModule {
   constructor (eUl) {
     super();
     this.bStorage = true,
+    this.storageModule = new StorageModule(),
     this.eUl = eUl,
     this.sDefaultAuthor = '',
     this.sDefaultText = '';
   }
 
   /* Emitter to set a text into the toastr */
-  emitNoteDebug(sText) {
-    this.emit('noteDebugText', sText);
-  }
-
-  emitNoteSaveStorage(sKey, sValue) {
-    this.emit('noteSaveStorage', sKey, sValue);
+  setInfoText(sText) {
+    const infoModule = new InfoModule();
+    infoModule.setText(sText);
   }
 
   delete() {
@@ -638,9 +640,9 @@ class NoteModule extends EmitterModule {
 
     if (this.bStorage) {
       if (sAuthor !== this.sDefaultAuthor) {
-        bSuccess = this.emitNoteSaveStorage('author', sAuthor);
+        bSuccess = this.storageModule.save('author', sAuthor);
       }
-      bSuccess = this.emitNoteSaveStorage(nKey.toString(), sEntry);
+      bSuccess = this.storageModule.save(nKey.toString(), sEntry);
     }
     if (bSuccess) {
       // fCreate(nKey, sEntry, true);
@@ -666,7 +668,7 @@ class NoteModule extends EmitterModule {
     // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
   
     if (typeof(self.localStorage) === 'undefined') {
-      this.emitNoteDebug('No localStorage!');
+      this.setInfoText('No localStorage!');
       this.bStorage = false;
     } else {
       console.log('sAuthor = fReadStore()');
@@ -691,19 +693,12 @@ class NoteModule extends EmitterModule {
 // Starts to initialize the site
 (function () {
   'use strict';
-  const debugModule = new DebugModule(),
-    storageModule = new StorageModule(),
+  const infoModule = new InfoModule(),
     noteModule = new NoteModule(document.getElementById('containerNotes'));
 
   // CacheModule as an example. Can be removed later.
   const cacheModule = new CacheModule(self.applicationCache);
-  cacheModule.on('updateCacheEvent', sText => debugModule.setText(sText));
   cacheModule.init();
-
-  // Init all emitter
-  storageModule.on('storageDebugText', sText => debugModule.setText(sText));
-  noteModule.on('noteDebugText', sText => debugModule.setText(sText));
-  noteModule.on('noteSaveStorage', (sKey, sValue) => storageModule.save(sKey, sValue));
 
   //init methods 
 
@@ -727,13 +722,13 @@ class NoteModule extends EmitterModule {
     bClean = true;
   };
   
-  self.addEventListener('online', () => debugModule.setText('on the web'));
-  self.addEventListener('offline', () => debugModule.setText('off the web'));
+  self.addEventListener('online', () => infoModule.setText('on the web'));
+  self.addEventListener('offline', () => infoModule.setText('off the web'));
 
   if (navigator.onLine) {
-    debugModule.setText('on the web');
+    infoModule.setText('on the web');
   } else {
-    debugModule.setText('off the web');
+    infoModule.setText('off the web');
   }
   
 
@@ -743,13 +738,13 @@ class NoteModule extends EmitterModule {
   eText.addEventListener('focus', () => fCleanUp());
 
   eBtn.addEventListener('click', () => {
-    //if (fSave(eText.value, eAuthor.firstChild.nodeValue)) {
-    if (noteModule.save(eText.value, eAuthor.firstChild.nodeValue)) {
+    if (fSave(eText.value, eAuthor.firstChild.nodeValue)) {
+    //if (noteModule.save(eText.value, eAuthor.firstChild.nodeValue)) {
       bClean = false;
     }
     eText.focus();
   });
 
-  //eAuthor.firstChild.nodeValue = fInit(eText.value, eAuthor.firstChild.nodeValue);
-  eAuthor.firstChild.nodeValue = noteModule.init(eText.value, eAuthor.firstChild.nodeValue);
+  eAuthor.firstChild.nodeValue = fInit(eText.value, eAuthor.firstChild.nodeValue);
+  //eAuthor.firstChild.nodeValue = noteModule.init(eText.value, eAuthor.firstChild.nodeValue);
 })();
