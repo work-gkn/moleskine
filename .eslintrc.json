@@ -4,10 +4,14 @@
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "ecmaVersion": 6
+        "ecmaVersion": 6,
+        "ecmaFeatures": {
+            "impliedStrict": true,
+            "classes": true
+        }
     },
     "rules": {
-        "no-unused-vars":"off",
+        "no-unused-vars": 0,
         "indent": ["error", 2],
         "quotes": ["warn", "single"],
         "semi": ["error", "always"]

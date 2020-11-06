@@ -1,14 +1,27 @@
+/** class representing an emitter module */
 class EmitterModule {
   constructor() {
     this.events = {};
   }
-
-/** 
-   * Löst ein Ereignis aus. Dieser Funktion dürfen beliebig viele 
-   * Parameter übergeben werden, diese werden 1:1 an die Event-Listener  
-   * durchgereicht.  
+  
+  /** 
+   * Registers an event listener for the event eventName. 
    *  
-   * @param {string} eventName  
+   * @param {String} eventName  
+   * @param {Function} cb  
+   */ 
+  on(eventName, cb) { 
+    if (!(eventName in this.events)) { 
+      this.events[eventName] = []; 
+    } 
+    this.events[eventName].push(cb); 
+  } 
+
+  /** 
+   * Triggers an event. Any number of parameters may be passed to this function, these are passed
+   * 1:1 to the event listeners. 
+   *  
+   * @param {String} eventName  
    * @param {*=} arguments 
    */ 
   emit(eventName) { 
@@ -19,17 +32,4 @@ class EmitterModule {
       } 
     } 
   }
-
-  /** 
-   * Registriert einen Event-Listener für das Event eventName. 
-   *  
-   * @param {string} eventName  
-   * @param {Function} cb  
-   */ 
-  on(eventName, cb) { 
-    if (!(eventName in this.events)) { 
-      this.events[eventName] = []; 
-    } 
-    this.events[eventName].push(cb); 
-  } 
 }

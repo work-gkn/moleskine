@@ -1,14 +1,27 @@
+/** class representing an emitter module */
 class EmitterModule {
   constructor() {
     this.events = {};
   }
-
-/** 
-   * Löst ein Ereignis aus. Dieser Funktion dürfen beliebig viele 
-   * Parameter übergeben werden, diese werden 1:1 an die Event-Listener  
-   * durchgereicht.  
+  
+  /** 
+   * Registers an event listener for the event eventName. 
    *  
-   * @param {string} eventName  
+   * @param {String} eventName  
+   * @param {Function} cb  
+   */ 
+  on(eventName, cb) { 
+    if (!(eventName in this.events)) { 
+      this.events[eventName] = []; 
+    } 
+    this.events[eventName].push(cb); 
+  } 
+
+  /** 
+   * Triggers an event. Any number of parameters may be passed to this function, these are passed
+   * 1:1 to the event listeners. 
+   *  
+   * @param {String} eventName  
    * @param {*=} arguments 
    */ 
   emit(eventName) { 
@@ -19,120 +32,35 @@ class EmitterModule {
       } 
     } 
   }
-
-  /** 
-   * Registriert einen Event-Listener für das Event eventName. 
-   *  
-   * @param {string} eventName  
-   * @param {Function} cb  
-   */ 
-  on(eventName, cb) { 
-    if (!(eventName in this.events)) { 
-      this.events[eventName] = []; 
-    } 
-    this.events[eventName].push(cb); 
-  } 
 }
-/**
- * Module to generate a Message in a toaster
- */
-self.mDebug = (function () {
-  /**
-   * inits and shows the toaster. This is taken from bootstrap documentation
-   */
-  const fShow = function() {
-    try {
-      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
-      let toastList = toastElList.map(function (toastEl) {
-        return new self.bootstrap.Toast(toastEl, {delay:1500});
-      });
-      for (const toast of toastList) {
-        toast.show();
-      }
-    } catch (e) {
-      self.console.error(e);
-    }
-  };
+/** Class representing an inforamtion module. */
+class InfoModule {
 
-  /**
-   * Defines the toster and set it into the right position in DOM
-   * @param {string} sText Text that should be shown in toaster
-   */
-  const fCreateOutput = function(sText) {
-    if (typeof sText !== 'string' || sText === '') {
-      self.console.warn('Format of parameter was not correct');
-      return;
-    }
-    let eCntner = document.getElementById('debug'),
-      eDvTst = document.createElement('div'),
-      eDvHdr = document.createElement('div'),
-      eDvBdy = document.createElement('div'),
-      eStrng = document.createElement('strong');
-
-    eStrng.appendChild(document.createTextNode('Info'));
-    
-    eDvHdr.classList.add('toast-header', 'bg-info');
-    eDvHdr.appendChild(eStrng);
-    
-    eDvBdy.classList.add('toast-body');
-    eDvBdy.appendChild(document.createTextNode(sText));
-    
-    eDvTst.classList.add('toast');
-    eDvTst.setAttribute('role', 'alert');
-    eDvTst.appendChild(eDvHdr);
-    eDvTst.appendChild(eDvBdy);
-    
-    //Removes the content from DOM, after toaster was shown.
-    eDvTst.addEventListener('hidden.bs.toast', function () {
-      eDvTst.remove();
-    });
-
-    eCntner.appendChild(eDvTst);
-  };
+  constructor() {
+    this.toastrText = '';
+    this.eCntnr = document.getElementById('debug');
+  }
 
   /**
    * Gets a text to show in the toaster.
    * @param {string} sText Message, that could be set to the debug body
    */
-  const fSetText = function (sText) {
-    if (typeof sText === 'string' && sText !== '') {
-      fCreateOutput(sText);
-      fShow();
-    } else {
+  setText(sText) {
+    if (typeof sText !== 'string' || sText === '') {
       self.console.warn('Format of parameter was not correct');
+      this.toastrText = '';
+      return;
     }
-  };
-
-  // Set the public methods
-  return {
-    setText: fSetText
-  };
-})();
-
-
-/* the same as Module */
-class InfoModule {
-  constructor() {
-    this.toastrText = '';
+    this.toastrText = sText;
+    this.createOutput();
   }
 
-  show() {
-    try {
-      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
-      let toastList = toastElList.map(function (toastEl) {
-        return new self.bootstrap.Toast(toastEl, {delay:1500});
-      });
-      for (const toast of toastList) {
-        toast.show();
-      }
-    } catch (e) {
-      self.console.error(e);
-    }
-  }
-  
+  /**
+   * Creates the HTML elements for a toastr to the DOM. Also set an event listener that the toaster
+   * could be removed by the Bootstrap Toast method.
+   */
   createOutput() {
-    let eCntner = document.getElementById('debug'),
-      eDvTst = document.createElement('div'),
+    let eDvTst = document.createElement('div'),
       eDvHdr = document.createElement('div'),
       eDvBdy = document.createElement('div'),
       eStrng = document.createElement('strong');
@@ -151,162 +79,66 @@ class InfoModule {
     eDvTst.appendChild(eDvBdy);
     
     //Removes the content from DOM, after toaster was shown.
-    eDvTst.addEventListener('hidden.bs.toast', function () {
+    eDvTst.addEventListener('hidden.bs.toast', () => eDvTst.remove());
+    this.eCntnr.appendChild(eDvTst);
+    this.show(eDvTst);
+  }
+
+  /**
+   * Tries to show the created toastrs here.
+   * @param {HTMLDivElement} eDvTst 
+   */
+  show(eDvTst) {
+    try {
+      // This code is taken from Bootstrap documentation
+      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
+      let toastList = toastElList.map(toastEl => new self.bootstrap.Toast(toastEl, {delay:1500}));
+      toastList.map(toast => toast.show());
+    } catch (e) {
+      self.console.warn('Bootstrap JS is not available now!', e);
       eDvTst.remove();
-    });
-
-    eCntner.appendChild(eDvTst);
-    this.show();
-  }
-
-  /**
-   * Gets a text to show in the toaster.
-   * @param {string} sText Message, that could be set to the debug body
-   */
-  setText(sText) {
-    if (typeof sText !== 'string' || sText === '') {
-      self.console.warn('Format of parameter was not correct');
-      this.toastrText = '';
-      return;
     }
-    this.toastrText = sText;
-    this.createOutput();
   }
 }
+// ESLint definition for globals
+/* global InfoModule */
+
 /**
- * Module for setting cache operations
+ * Class representing a cache inforamtion module.
+ * 
+ * Heads up! Using this is now an antipattern!
  */
-class CacheModule extends EmitterModule {
+class CacheModule {
+  /**
+   * Checks, if ApplicationCache is available and set EventListeners to inform the user about
+   * the cache status.
+   * @param {ApplicationCache} appCache 
+   */
   constructor(appCache) {
-    super();
-    this.appCache = appCache;
-  }
-
-  setInfoText(sText) {
     const infoModule = new InfoModule();
-    infoModule.setText(sText);
-  }
-
-  init() {
-    if (!this.appCache) {
+    if (appCache) {
+      appCache.addEventListener('checking', () => infoModule.setText('Check the cache ...'));
+      appCache.addEventListener('noupdate', () => infoModule.setText('No cache update necessary'));
+      appCache.addEventListener('downloading', () => infoModule.setText('Update the cache ...'));
+      appCache.addEventListener('progress', () => infoModule.setText('Download file ...'));
+      appCache.addEventListener('updateready', () => infoModule.setText('Cache update ready ...'));
+      appCache.addEventListener('cached', () => infoModule.setText('Cache is up-to-date'));
+      appCache.addEventListener('obsolete', () => infoModule.setText('Cache is obsolete'));
+      appCache.addEventListener('error', e => infoModule.setText('Problem with Cache: ' + e));
+    } else {
       self.console.warn('No applicationCache available!');
-      return;
     }
-    
-    this.appCache.addEventListener('checking', () => this.setInfoText('Check the cache ...'));
-    this.appCache.addEventListener('noupdate', () => this.setInfoText('No cache update necessary'));
-    this.appCache.addEventListener('downloading', () => this.setInfoText('Update the cache ...'));
-    this.appCache.addEventListener('progress', () => this.setInfoText('Download file ...'));
-    this.appCache.addEventListener('updateready', () => this.setInfoText('Cache update ready ...'));
-    this.appCache.addEventListener('cached', () => this.setInfoText('Cache is up-to-date'));
-    this.appCache.addEventListener('obsolete', () => this.setInfoText('Cache is obsolete'));
-    this.appCache.addEventListener('error', (e) => this.setInfoText('Problem with Cache: ' + e));
-    
-   
   }
 }
-/**
- * Module to interact with localStorage
- */
-self.mStorage = (function (mDebug) {
-  if (typeof self.mDebug === 'undefined') {
-    return;
-  }
-  // import
-  const fSetText = mDebug.setText;
-  
-  /**
-   * Sets the given parameters into localstorage
-   * @param {String} sKey The key for the local storage
-   * @param {String} sValue Content to store
-   */
-  const fSet = function (sKey, sValue) {
-    if (typeof sKey !== 'string' || sKey === '') {
-      self.console.warn('Format of parameter sKey is not correct');
-      return false;
-    }
+// ESLint definition for globals
+/* global InfoModule */
 
-    if (typeof sValue !== 'string' || sValue === '') {
-      self.console.warn('Format of parameter sValue is not correct');
-      return false;
-    }
+/** Class representing a storage module to interact with LocalStorage */
+class StorageModule {
 
-    try {
-      localStorage.setItem(sKey, sValue);
-      if (sKey !== 'author') {
-        fSetText('Entry saved locally');
-      }
-      return true;
-    } catch (e) {
-      fSetText('Error while saving: ' + e);
-      return false;
-    }
-  };
-  
-  /**
-   * Get all entries from local storage. The returned array contains the 
-   * entries in descending order. 
-   * @returns {Array} Array with objects of entries
-   */
-  const fGetAll = function () {
-    let aKeys = [],
-      aValues = [];
-
-    for (let i = 0; i < localStorage.length; i = i + 1) {
-      aKeys.push(localStorage.key(i));
-    }
-    // sort the key after the timestamp and bring it in descending order
-    aKeys = aKeys.sort();
-    for (let i = aKeys.length; i-- > 0;) {
-      let sKey = aKeys[i],
-        sValue = localStorage.getItem(sKey);
-      if (sValue) {
-        aValues.push({key: sKey, value: sValue});
-      } else {
-        continue;
-      }
-    }
-    return aValues;
-  };
-
-  /**
-   * Removes a item from localStorage by given id
-   * @param {String} sId The key in localStorage to remove
-   * @returns {Boolean} If operation was successfull or not
-   */
-  const fRemove = function (sId) {
-    if (typeof sId !== 'string' || sId === '') {
-      self.console.warn('Format of parameter sId was not correct');
-      return false;
-    }
-    try {
-      localStorage.removeItem(sId);
-      fSetText('Entry deleted locally');
-      return true;
-    } catch (e) {
-      fSetText('Error while deleting: ' + e);
-      return false;
-    }
-  };
-  
-  // Set the public methods 
-  return {
-    getAll: fGetAll,
-    remove: fRemove,
-    set: fSet
-  };
-})(self.mDebug);
-
-/* The same as Class  */
-class StorageModule extends EmitterModule {
+  /** Set instance of InfoModule */
   constructor() {
-    super();
-  }
-
-  /* Emitter to set a text into the toastr */
-  setInfoText(sText) {
-    const infoModule = new InfoModule();
-    infoModule.setText(sText);
+    this.infoModule = new InfoModule();
   }
 
   /**
@@ -328,35 +160,72 @@ class StorageModule extends EmitterModule {
     try {
       localStorage.setItem(sKey, sValue);
       if (sKey !== 'author') {
-        this.setInfoText('Entry saved locally');
+        this.infoModule.setText('Entry saved locally');
       }
       return true;
     } catch (e) {
-      this.setInfoText('Error while saving: ' + e);
+      this.infoModule.setText('Error while saving: ' + e);
       return false;
     }
   }
 
+  /**
+   * Get all entries from local storage. The returned array contains the 
+   * entries in descending order. 
+   * @returns {Array} Array with objects of entries
+   */
   getList() {
+    let aKeys = [],
+      aValues = [];
 
+    for (let i = 0; i < localStorage.length; i = i + 1) {
+      aKeys.push(localStorage.key(i));
+    }
+    // sort the key after the timestamp and bring it in descending order
+    aKeys = aKeys.sort();
+    for (let i = aKeys.length; i-- > 0;) {
+      let sKey = aKeys[i],
+        sValue = localStorage.getItem(sKey);
+      
+      if (sValue) {
+        aValues.push({key: sKey, value: sValue});
+      } else {
+        continue;
+      }
+    }
+    return aValues;
   }
 
+  /**
+   * Removes a item from localStorage by given id
+   * @param {String} sId The key in localStorage to remove
+   * @returns {Boolean} If operation was successfull or not
+   */
   remove(sId) {
-
+    if (typeof sId !== 'string' || sId === '') {
+      self.console.warn('Format of parameter sId was not correct');
+      return false;
+    }
+    try {
+      localStorage.removeItem(sId);
+      this.infoModule.setText('Entry deleted locally');
+      return true;
+    } catch (e) {
+      this.infoModule.setText('Error while deleting: ' + e);
+      return false;
+    }
   }
 }
+// ESLint definition for globals
+/* global InfoModule,  StorageModule */
+
+
 /**
  * Module to handle the notes
  */
-self.mNotes = (function (mDebug, mStorage) {
-  if (typeof mDebug === 'undefined' || typeof mStorage === 'undefined') {
-    return;
-  }
-  // import
-  const fSetText = mDebug.setText,
-    fGetAll = mStorage.getAll,
-    fRemove = mStorage.remove,
-    fSet = mStorage.set;
+self.mNotes = (function () {
+  const infoModule = new InfoModule(),
+    storageModule = new StorageModule();
   
   let bStorage = true,
     eUl = document.getElementById('containerNotes'),
@@ -436,7 +305,7 @@ self.mNotes = (function (mDebug, mStorage) {
       oDate = new Date();
 
     if (bQuestion && bStorage) {
-      bQuestion = fRemove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
+      bQuestion = storageModule.remove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
     }
     
     if (bQuestion) {
@@ -513,9 +382,9 @@ self.mNotes = (function (mDebug, mStorage) {
 
     if (bStorage) {
       if (sAuthor !== sDefaultAuthor) {
-        bSuccess = fSet('author', sAuthor);
+        bSuccess = storageModule.save('author', sAuthor);
       }
-      bSuccess = fSet(nKey.toString(), sEntry);
+      bSuccess = storageModule.save(nKey.toString(), sEntry);
     }
     if (bSuccess) {
       fCreate(nKey, sEntry, true);
@@ -529,7 +398,7 @@ self.mNotes = (function (mDebug, mStorage) {
    * @returns {String} value read from aEntries with key author or an empty string
    */
   const fReadStore = function () {
-    let aEntries = fGetAll(),
+    let aEntries = storageModule.getList(),
       bUpdate = true,
       oDate = new Date(),
       sAuthor = '';
@@ -571,7 +440,7 @@ self.mNotes = (function (mDebug, mStorage) {
     // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
   
     if (typeof(self.localStorage) === 'undefined') {
-      fSetText('No localStorage!');
+      infoModule.setText('No localStorage!');
       bStorage = false;
     } else {
       sAuthor = fReadStore();
@@ -597,12 +466,12 @@ self.mNotes = (function (mDebug, mStorage) {
     init: fInit,
     save: fSave,
   };
-})(self.mDebug, self.mStorage);
+})();
 
 /* The same as class */
-class NoteModule extends EmitterModule {
+class NoteModule {
   constructor (eUl) {
-    super();
+    this.infoModule = new InfoModule();
     this.bStorage = true,
     this.storageModule = new StorageModule(),
     this.eUl = eUl,
@@ -610,99 +479,34 @@ class NoteModule extends EmitterModule {
     this.sDefaultText = '';
   }
 
-  /* Emitter to set a text into the toastr */
-  setInfoText(sText) {
-    const infoModule = new InfoModule();
-    infoModule.setText(sText);
-  }
+  delete() {}
 
-  delete() {
+  create() {}
 
-  }
+  save() {}
 
-  create() {
+  readStore() {}
 
-  }
-  /**
-   * Get the content for the note and creates new elements to include in DOM
-   * @param {String} sEntry  Content from textarea
-   * @param {String} sAuthor Content from h2 element
-   * @returns {Boolean} Save in localStorage was successful or not
-   */
-  save(sEntry, sAuthor) {  //Should be handle a async 
-    let bSuccess = true, // When no localStorage is available, set only to DOM
-      oDate = new Date(),
-      nKey = oDate.getTime();
-
-    if (sEntry === '' || sEntry === this.sDefaultText) {
-      return false;
-    }
-
-    if (this.bStorage) {
-      if (sAuthor !== this.sDefaultAuthor) {
-        bSuccess = this.storageModule.save('author', sAuthor);
-      }
-      bSuccess = this.storageModule.save(nKey.toString(), sEntry);
-    }
-    if (bSuccess) {
-      // fCreate(nKey, sEntry, true);
-      // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
-    }
-    return bSuccess;
-  }
-
-  readStore() {
-
-  }
-  /**
-   * Init the module. Reads information from localstorage and add existing items.
-   * @param {String} sTextDef   The existing text in textarea
-   * @param {String} sAuthorDef The default text in h2 element
-   * @returns {String} Content from fReadstore or h2 element 
-   */
-  init(sTextDef, sAuthorDef) {
-    let oDate = new Date(),
-      sAuthor = '';
-
-    // To set current date in case localStorage has no entries
-    // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
-  
-    if (typeof(self.localStorage) === 'undefined') {
-      this.setInfoText('No localStorage!');
-      this.bStorage = false;
-    } else {
-      console.log('sAuthor = fReadStore()');
-    }
-
-    if (typeof sTextDef === 'string') {
-      this.sDefaultText = sTextDef;
-    }
-
-    if (typeof(sAuthorDef) === 'string') {
-      this.sDefaultAuthor = sAuthorDef;
-    }
-
-    if (sAuthor === '') {
-      return sAuthorDef;
-    } else {
-      return sAuthor;
-    }
-  }
+  init() {}
 }
+// ESLint definition for globals
+/* global CacheModule, InfoModule, NoteModule */
 
 // Starts to initialize the site
 (function () {
   'use strict';
-  const infoModule = new InfoModule(),
-    noteModule = new NoteModule(document.getElementById('containerNotes'));
-
-  // CacheModule as an example. Can be removed later.
-  const cacheModule = new CacheModule(self.applicationCache);
-  cacheModule.init();
-
-  //init methods 
-
-  // import
+  /*
+   * CacheModule is now only an example. The applcation cache feature is deprecated and will be
+   * removed from the Web platform! Also using ApplicationCache by loading a HTML file from disk
+   * is also not possible.
+   * See https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache
+   */
+  new CacheModule(self.applicationCache);
+  
+  const infoModule = new InfoModule();
+  //  noteModule = new NoteModule(document.getElementById('containerNotes'));
+  
+  // import of Notes
   const fInit = self.mNotes.init,
     fSave = self.mNotes.save;
   
@@ -711,9 +515,7 @@ class NoteModule extends EmitterModule {
     eBtn = document.getElementById('save'),
     eText = document.getElementById('textarea');
   
-  /**
-   * Clean up the textarea from text
-   */
+  /** Clean up the textarea from text */
   const fCleanUp = function () {
     if (bClean) {
       return;
@@ -730,7 +532,6 @@ class NoteModule extends EmitterModule {
   } else {
     infoModule.setText('off the web');
   }
-  
 
   eAuthor.addEventListener('click', () => eAuthor.firstChild.nodeValue = '');
 
@@ -739,12 +540,10 @@ class NoteModule extends EmitterModule {
 
   eBtn.addEventListener('click', () => {
     if (fSave(eText.value, eAuthor.firstChild.nodeValue)) {
-    //if (noteModule.save(eText.value, eAuthor.firstChild.nodeValue)) {
       bClean = false;
     }
     eText.focus();
   });
 
   eAuthor.firstChild.nodeValue = fInit(eText.value, eAuthor.firstChild.nodeValue);
-  //eAuthor.firstChild.nodeValue = noteModule.init(eText.value, eAuthor.firstChild.nodeValue);
 })();

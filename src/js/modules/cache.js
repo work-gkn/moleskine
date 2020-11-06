@@ -1,32 +1,30 @@
+// ESLint definition for globals
+/* global InfoModule */
+
 /**
- * Module for setting cache operations
+ * Class representing a cache inforamtion module.
+ * 
+ * Heads up! Using this is now an antipattern!
  */
-class CacheModule extends EmitterModule {
+class CacheModule {
+  /**
+   * Checks, if ApplicationCache is available and set EventListeners to inform the user about
+   * the cache status.
+   * @param {ApplicationCache} appCache 
+   */
   constructor(appCache) {
-    super();
-    this.appCache = appCache;
-  }
-
-  setInfoText(sText) {
     const infoModule = new InfoModule();
-    infoModule.setText(sText);
-  }
-
-  init() {
-    if (!this.appCache) {
+    if (appCache) {
+      appCache.addEventListener('checking', () => infoModule.setText('Check the cache ...'));
+      appCache.addEventListener('noupdate', () => infoModule.setText('No cache update necessary'));
+      appCache.addEventListener('downloading', () => infoModule.setText('Update the cache ...'));
+      appCache.addEventListener('progress', () => infoModule.setText('Download file ...'));
+      appCache.addEventListener('updateready', () => infoModule.setText('Cache update ready ...'));
+      appCache.addEventListener('cached', () => infoModule.setText('Cache is up-to-date'));
+      appCache.addEventListener('obsolete', () => infoModule.setText('Cache is obsolete'));
+      appCache.addEventListener('error', e => infoModule.setText('Problem with Cache: ' + e));
+    } else {
       self.console.warn('No applicationCache available!');
-      return;
     }
-    
-    this.appCache.addEventListener('checking', () => this.setInfoText('Check the cache ...'));
-    this.appCache.addEventListener('noupdate', () => this.setInfoText('No cache update necessary'));
-    this.appCache.addEventListener('downloading', () => this.setInfoText('Update the cache ...'));
-    this.appCache.addEventListener('progress', () => this.setInfoText('Download file ...'));
-    this.appCache.addEventListener('updateready', () => this.setInfoText('Cache update ready ...'));
-    this.appCache.addEventListener('cached', () => this.setInfoText('Cache is up-to-date'));
-    this.appCache.addEventListener('obsolete', () => this.setInfoText('Cache is obsolete'));
-    this.appCache.addEventListener('error', (e) => this.setInfoText('Problem with Cache: ' + e));
-    
-   
   }
 }

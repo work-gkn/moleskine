@@ -1,103 +1,31 @@
-/**
- * Module to generate a Message in a toaster
- */
-self.mDebug = (function () {
-  /**
-   * inits and shows the toaster. This is taken from bootstrap documentation
-   */
-  const fShow = function() {
-    try {
-      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
-      let toastList = toastElList.map(function (toastEl) {
-        return new self.bootstrap.Toast(toastEl, {delay:1500});
-      });
-      for (const toast of toastList) {
-        toast.show();
-      }
-    } catch (e) {
-      self.console.error(e);
-    }
-  };
+/** Class representing an inforamtion module. */
+class InfoModule {
 
-  /**
-   * Defines the toster and set it into the right position in DOM
-   * @param {string} sText Text that should be shown in toaster
-   */
-  const fCreateOutput = function(sText) {
-    if (typeof sText !== 'string' || sText === '') {
-      self.console.warn('Format of parameter was not correct');
-      return;
-    }
-    let eCntner = document.getElementById('debug'),
-      eDvTst = document.createElement('div'),
-      eDvHdr = document.createElement('div'),
-      eDvBdy = document.createElement('div'),
-      eStrng = document.createElement('strong');
-
-    eStrng.appendChild(document.createTextNode('Info'));
-    
-    eDvHdr.classList.add('toast-header', 'bg-info');
-    eDvHdr.appendChild(eStrng);
-    
-    eDvBdy.classList.add('toast-body');
-    eDvBdy.appendChild(document.createTextNode(sText));
-    
-    eDvTst.classList.add('toast');
-    eDvTst.setAttribute('role', 'alert');
-    eDvTst.appendChild(eDvHdr);
-    eDvTst.appendChild(eDvBdy);
-    
-    //Removes the content from DOM, after toaster was shown.
-    eDvTst.addEventListener('hidden.bs.toast', function () {
-      eDvTst.remove();
-    });
-
-    eCntner.appendChild(eDvTst);
-  };
+  constructor() {
+    this.toastrText = '';
+    this.eCntnr = document.getElementById('debug');
+  }
 
   /**
    * Gets a text to show in the toaster.
    * @param {string} sText Message, that could be set to the debug body
    */
-  const fSetText = function (sText) {
-    if (typeof sText === 'string' && sText !== '') {
-      fCreateOutput(sText);
-      fShow();
-    } else {
+  setText(sText) {
+    if (typeof sText !== 'string' || sText === '') {
       self.console.warn('Format of parameter was not correct');
+      this.toastrText = '';
+      return;
     }
-  };
-
-  // Set the public methods
-  return {
-    setText: fSetText
-  };
-})();
-
-
-/* the same as Module */
-class InfoModule {
-  constructor() {
-    this.toastrText = '';
+    this.toastrText = sText;
+    this.createOutput();
   }
 
-  show() {
-    try {
-      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
-      let toastList = toastElList.map(function (toastEl) {
-        return new self.bootstrap.Toast(toastEl, {delay:1500});
-      });
-      for (const toast of toastList) {
-        toast.show();
-      }
-    } catch (e) {
-      self.console.error(e);
-    }
-  }
-  
+  /**
+   * Creates the HTML elements for a toastr to the DOM. Also set an event listener that the toaster
+   * could be removed by the Bootstrap Toast method.
+   */
   createOutput() {
-    let eCntner = document.getElementById('debug'),
-      eDvTst = document.createElement('div'),
+    let eDvTst = document.createElement('div'),
       eDvHdr = document.createElement('div'),
       eDvBdy = document.createElement('div'),
       eStrng = document.createElement('strong');
@@ -116,26 +44,24 @@ class InfoModule {
     eDvTst.appendChild(eDvBdy);
     
     //Removes the content from DOM, after toaster was shown.
-    eDvTst.addEventListener('hidden.bs.toast', function () {
-      eDvTst.remove();
-    });
-
-    if (eCntner.appendChild(eDvTst)) {
-      this.show();
-    }
+    eDvTst.addEventListener('hidden.bs.toast', () => eDvTst.remove());
+    this.eCntnr.appendChild(eDvTst);
+    this.show(eDvTst);
   }
 
   /**
-   * Gets a text to show in the toaster.
-   * @param {string} sText Message, that could be set to the debug body
+   * Tries to show the created toastrs here.
+   * @param {HTMLDivElement} eDvTst 
    */
-  setText(sText) {
-    if (typeof sText !== 'string' || sText === '') {
-      self.console.warn('Format of parameter was not correct');
-      this.toastrText = '';
-      return;
+  show(eDvTst) {
+    try {
+      // This code is taken from Bootstrap documentation
+      let toastElList = [].slice.call(document.querySelectorAll('.toast'));
+      let toastList = toastElList.map(toastEl => new self.bootstrap.Toast(toastEl, {delay:1500}));
+      toastList.map(toast => toast.show());
+    } catch (e) {
+      self.console.warn('Bootstrap JS is not available now!', e);
+      eDvTst.remove();
     }
-    this.toastrText = sText;
-    this.createOutput();
   }
 }

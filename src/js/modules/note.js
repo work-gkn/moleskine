@@ -1,15 +1,13 @@
+// ESLint definition for globals
+/* global InfoModule,  StorageModule */
+
+
 /**
  * Module to handle the notes
  */
-self.mNotes = (function (mDebug, mStorage) {
-  if (typeof mDebug === 'undefined' || typeof mStorage === 'undefined') {
-    return;
-  }
-  // import
-  const fSetText = mDebug.setText,
-    fGetAll = mStorage.getAll,
-    fRemove = mStorage.remove,
-    fSet = mStorage.set;
+self.mNotes = (function () {
+  const infoModule = new InfoModule(),
+    storageModule = new StorageModule();
   
   let bStorage = true,
     eUl = document.getElementById('containerNotes'),
@@ -89,7 +87,7 @@ self.mNotes = (function (mDebug, mStorage) {
       oDate = new Date();
 
     if (bQuestion && bStorage) {
-      bQuestion = fRemove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
+      bQuestion = storageModule.remove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
     }
     
     if (bQuestion) {
@@ -166,9 +164,9 @@ self.mNotes = (function (mDebug, mStorage) {
 
     if (bStorage) {
       if (sAuthor !== sDefaultAuthor) {
-        bSuccess = fSet('author', sAuthor);
+        bSuccess = storageModule.save('author', sAuthor);
       }
-      bSuccess = fSet(nKey.toString(), sEntry);
+      bSuccess = storageModule.save(nKey.toString(), sEntry);
     }
     if (bSuccess) {
       fCreate(nKey, sEntry, true);
@@ -182,7 +180,7 @@ self.mNotes = (function (mDebug, mStorage) {
    * @returns {String} value read from aEntries with key author or an empty string
    */
   const fReadStore = function () {
-    let aEntries = fGetAll(),
+    let aEntries = storageModule.getList(),
       bUpdate = true,
       oDate = new Date(),
       sAuthor = '';
@@ -224,7 +222,7 @@ self.mNotes = (function (mDebug, mStorage) {
     // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
   
     if (typeof(self.localStorage) === 'undefined') {
-      fSetText('No localStorage!');
+      infoModule.setText('No localStorage!');
       bStorage = false;
     } else {
       sAuthor = fReadStore();
@@ -250,12 +248,12 @@ self.mNotes = (function (mDebug, mStorage) {
     init: fInit,
     save: fSave,
   };
-})(self.mDebug, self.mStorage);
+})();
 
 /* The same as class */
-class NoteModule extends EmitterModule {
+class NoteModule {
   constructor (eUl) {
-    super();
+    this.infoModule = new InfoModule();
     this.bStorage = true,
     this.storageModule = new StorageModule(),
     this.eUl = eUl,
@@ -263,82 +261,13 @@ class NoteModule extends EmitterModule {
     this.sDefaultText = '';
   }
 
-  /* Emitter to set a text into the toastr */
-  setInfoText(sText) {
-    const infoModule = new InfoModule();
-    infoModule.setText(sText);
-  }
+  delete() {}
 
-  delete() {
+  create() {}
 
-  }
+  save() {}
 
-  create() {
+  readStore() {}
 
-  }
-  /**
-   * Get the content for the note and creates new elements to include in DOM
-   * @param {String} sEntry  Content from textarea
-   * @param {String} sAuthor Content from h2 element
-   * @returns {Boolean} Save in localStorage was successful or not
-   */
-  save(sEntry, sAuthor) {  //Should be handle a async 
-    let bSuccess = true, // When no localStorage is available, set only to DOM
-      oDate = new Date(),
-      nKey = oDate.getTime();
-
-    if (sEntry === '' || sEntry === this.sDefaultText) {
-      return false;
-    }
-
-    if (this.bStorage) {
-      if (sAuthor !== this.sDefaultAuthor) {
-        bSuccess = this.storageModule.save('author', sAuthor);
-      }
-      bSuccess = this.storageModule.save(nKey.toString(), sEntry);
-    }
-    if (bSuccess) {
-      // fCreate(nKey, sEntry, true);
-      // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
-    }
-    return bSuccess;
-  }
-
-  readStore() {
-
-  }
-  /**
-   * Init the module. Reads information from localstorage and add existing items.
-   * @param {String} sTextDef   The existing text in textarea
-   * @param {String} sAuthorDef The default text in h2 element
-   * @returns {String} Content from fReadstore or h2 element 
-   */
-  init(sTextDef, sAuthorDef) {
-    let oDate = new Date(),
-      sAuthor = '';
-
-    // To set current date in case localStorage has no entries
-    // fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
-  
-    if (typeof(self.localStorage) === 'undefined') {
-      this.setInfoText('No localStorage!');
-      this.bStorage = false;
-    } else {
-      console.log('sAuthor = fReadStore()');
-    }
-
-    if (typeof sTextDef === 'string') {
-      this.sDefaultText = sTextDef;
-    }
-
-    if (typeof(sAuthorDef) === 'string') {
-      this.sDefaultAuthor = sAuthorDef;
-    }
-
-    if (sAuthor === '') {
-      return sAuthorDef;
-    } else {
-      return sAuthor;
-    }
-  }
+  init() {}
 }
