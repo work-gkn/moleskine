@@ -9,5 +9,3 @@ This application includes [the alpha of Bootstraps version 5](https://v5.getboot
 
 ## How to start
 Grep the latest version from [Releases](https://github.com/work-gkn/moleskine/releases) and unpack it elsewhere on your drive. The index.html file could be open directly in the browser.
-
-In Releases you find all the files you need to show the app in the browser. The index.html file can be opened directly in the browser.
