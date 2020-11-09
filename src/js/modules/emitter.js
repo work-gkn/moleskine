@@ -25,7 +25,9 @@ class EmitterModule {
    * @param {*=} arguments 
    */ 
   emit(eventName) { 
-    var f, args = [].slice.call(arguments, 1); 
+    var f,
+      args = [].slice.call(arguments, 1); 
+    
     if (eventName in this.events) { 
       for(f of this.events[eventName]) { 
         f.apply(this, args); 

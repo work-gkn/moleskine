@@ -4,9 +4,20 @@
 /** Class representing a storage module to interact with LocalStorage */
 class StorageModule {
 
-  /** Set instance of InfoModule */
-  constructor() {
+  /** Set instance of InfoModule
+   *  @param {Storage} localStorage The Storage object of the Web Storage API
+   */
+  constructor(localStorage) {
     this.infoModule = new InfoModule();
+    this.bStorage = true;
+    this.storage = {};
+    
+    if (typeof(localStorage) === 'undefined') {
+      this.infoModule.setText('No localStorage!');
+      this.bStorage = false;
+    } else {
+      this.storage = localStorage;
+    }
   }
 
   /**
@@ -14,7 +25,11 @@ class StorageModule {
    * @param {String} sKey The key for the local storage
    * @param {String} sValue Content to store
    */
-  save(sKey, sValue) { // should be handled as async 
+  save(sKey, sValue) { // should be handled as async
+    if (!this.bStorage) {
+      return false;
+    }
+
     if (typeof sKey !== 'string' || sKey === '') {
       self.console.warn('Format of parameter sKey is not correct');
       return false;
@@ -26,7 +41,7 @@ class StorageModule {
     }
 
     try {
-      localStorage.setItem(sKey, sValue);
+      this.storage.setItem(sKey, sValue);
       if (sKey !== 'author') {
         this.infoModule.setText('Entry saved locally');
       }
@@ -40,20 +55,25 @@ class StorageModule {
   /**
    * Get all entries from local storage. The returned array contains the 
    * entries in descending order. 
-   * @returns {Array} Array with objects of entries
+   * @returns {Array} Array with objects of entries. The object itself has the structure
+   *                  {key: 'theKey', value: 'theValue'}.
    */
   getList() {
     let aKeys = [],
       aValues = [];
 
-    for (let i = 0; i < localStorage.length; i = i + 1) {
-      aKeys.push(localStorage.key(i));
+    if (!this.bStorage) {
+      return aValues;
+    }
+
+    for (let i = 0; i < this.storage.length; i = i + 1) {
+      aKeys.push(this.storage.key(i));
     }
     // sort the key after the timestamp and bring it in descending order
     aKeys = aKeys.sort();
     for (let i = aKeys.length; i-- > 0;) {
       let sKey = aKeys[i],
-        sValue = localStorage.getItem(sKey);
+        sValue = this.storage.getItem(sKey);
       
       if (sValue) {
         aValues.push({key: sKey, value: sValue});
@@ -65,17 +85,22 @@ class StorageModule {
   }
 
   /**
-   * Removes a item from localStorage by given id
+   * Removes a item from localStorage by given ID
    * @param {String} sId The key in localStorage to remove
    * @returns {Boolean} If operation was successfull or not
    */
   remove(sId) {
+    if (!this.bStorage) {
+      return false;
+    }
+
     if (typeof sId !== 'string' || sId === '') {
       self.console.warn('Format of parameter sId was not correct');
       return false;
     }
+    
     try {
-      localStorage.removeItem(sId);
+      this.storage.removeItem(sId);
       this.infoModule.setText('Entry deleted locally');
       return true;
     } catch (e) {
