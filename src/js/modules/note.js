@@ -1,41 +1,6 @@
 // ESLint definition for globals
 /* global EmitterModule */
 
-
-/**
- * Module to handle the notes
- */
-self.mNotes = (function () {
-
-  /**
-   * Tries to delete the given id from localStorage after confirmation
-   * @param {String} sId ID that should be tried to remove from localStorage
-   * @returns {Boolean} If deletion was successful or not
-   */
-  const fDelete = function(sId) {
-    if (typeof sId !== 'string' || sId === '') {
-      self.console.log('Wrong format for parameter sId');
-      return false;
-    }
-
-    let bQuestion = self.confirm('Do you really want to delete this entry?'),
-      oDate = new Date();
-
-    if (bQuestion && bStorage) {
-      bQuestion = storageModule.remove(sId); // Overwrites bQuestion with boolean bSuccess from remove!
-    }
-    
-    if (bQuestion) {
-      // getDateTime()
-      fUpdateTimeElement(fDateToString(oDate, 1), fDateToString(oDate, 2));
-      
-    }
-    return bQuestion;
-  };
-
-})();
-
-/* The same as class */
 /** 
  * Class representing the note module 
  * @extends EmitterModule
@@ -193,6 +158,11 @@ class NoteListModule extends EmitterModule {
     document.getElementById(sId).remove();
   }
 
+  /**
+   * Tries to delete the given id from localStorage after confirmation
+   * @param {String} sId ID that should be tried to remove from localStorage
+   * @returns {Boolean} If deletion was successful or not
+   */
   delete(sId) {
     if (typeof sId !== 'string' || sId === '') {
       self.console.log('Wrong format for parameter sId');
