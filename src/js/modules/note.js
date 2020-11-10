@@ -15,7 +15,6 @@ class NoteListModule extends EmitterModule {
     super();
     this.eUl = eUl,
     this.aEntries = [],
-    this.sDefaultAuthor = '',
     this.sDefaultText = '';
   }
 
@@ -116,30 +115,16 @@ class NoteListModule extends EmitterModule {
       this.setInfoText('Entry could not be saved in storage!');
       self.console.error(e);
     } finally {
-      if (sKey !== 'author') {
-        this.aEntries.unshift({key: sKey, value: sValue});
-      }
+      this.aEntries.unshift({key: sKey, value: sValue});
     }
   }
 
   /**
-   * Tries to set or update a author. Search locally after the given name into the local array of 
-   * entries. Set or update the name in the array and calls [method saveEntry]{@link NoteModule#saveEntry}
-   * @param {String} sName The newly set item
+   * Try to call deleteEntry from the events property and pass the parameters to it.
+   * 
+   * @param {String} sKey   Key to save in storage.
+   * @param {String} sValue Value to save in storage.
    */
-  setAuthor(sName) {
-    if (this.aEntries.length === 0) {
-      this.aEntries.push({'author': sName});
-    } else {
-      const index = this.aEntries.findIndex(item => item.key === 'author');
-      if (index > -1) {
-        this.aEntries[index].value = sName;
-        this.sDefaultAuthor = sName;
-      }
-    }
-    this.saveEntry('author', sName);
-  }
-
   deleteEntry(sId, oDate) {
     try {
       this.emit('deleteEntry', sId, oDate);
@@ -149,6 +134,11 @@ class NoteListModule extends EmitterModule {
     }
   }
 
+  /**
+   * Tries to remove the given sId from the internal property aEntries.
+   * @param {String} sId ID to remove from the array
+   * @param {Date} oDate Date object to update the last change info
+   */
   removeFromList(sId, oDate) {
     this.updateTimeElement(this.dateToString(oDate, 1), this.dateToString(oDate, 2));
     let index = this.aEntries.findIndex(value => value.key === sId);
@@ -173,7 +163,7 @@ class NoteListModule extends EmitterModule {
       oDate = new Date();
 
     if (bQuestion) {
-      this.deleteEntry(sId, oDate); // Overwrites bQuestion with boolean bSuccess from remove!
+      this.deleteEntry(sId, oDate);
     }
   }
 
@@ -207,14 +197,6 @@ class NoteListModule extends EmitterModule {
 
     eLi.classList.add('list-group-item');
     eLi.setAttribute('id', nId);
-    
-    /* Dieser Teil hier muss noch in ein event in main.js
-    eBtn.addEventListener('click', () => { 
-      if(fDelete(eLi.attributes.id.value)) {
-        eLi.remove();
-      }
-    });
-    */
 
     eLi.appendChild(eDiv);
 
@@ -229,20 +211,15 @@ class NoteListModule extends EmitterModule {
   /**
    * Get the content for the note and creates new elements to include in DOM
    * @param {String} sEntry  Content from textarea
-   * @param {String} sAuthor Content from h2 element
-   * @returns {Boolean} Save in localStorage was successful or not
+   * @returns {Boolean}      Save in Storage was successful or not
    */
-  save(sEntry, sAuthor) {
+  save(sEntry) {
     let oDate = new Date(),
       nKey = oDate.getTime(), // getDateTime()
       sKey = nKey.toString();
 
     if (sEntry === '' || sEntry === this.sDefaultText) {
       return false;
-    }
-
-    if (sAuthor !== this.sDefaultAuthor) {
-      this.setAuthor(sAuthor);
     }
 
     this.saveEntry(sKey, sEntry);  
@@ -252,55 +229,46 @@ class NoteListModule extends EmitterModule {
    * Get entries from Storage and writes the information for each item into DOM
    * @returns {String} value read from aEntries with key author or an empty string
    */
-  initList() {
+  initList(aValues) {
     let bUpdate = true,
-      oDate = new Date(),
-      sAuthor = '';
+    oDate = new Date();
 
-      this.readStore();
-      
-      this.aEntries.map(value => {
-        let oEntry = value,
-        nCheck = parseInt(oEntry.key, 10);
-        if (isNaN(nCheck)) {
-          if (oEntry.key === 'author') {
-            sAuthor = oEntry.value;
-          }
-        } else {
-          oDate.setTime(nCheck);
-          // This updates the information in 'Last updated' with the date of the first entry
-          if (bUpdate) {
-            this.updateTimeElement(this.dateToString(oDate, 1), this.dateToString(oDate, 2)); // getDateTime(oDate)
-            bUpdate = false;
-          }
-          this.create(nCheck, oEntry.value);
+    aValues.map(item => {
+      const nCheck = parseInt(item.key, 10);
+      if (typeof nCheck === 'number' && item.key !== 'author') {
+        oDate.setTime(nCheck);
+        // This updates the information in 'Last updated' with the date of the first entry
+        if (bUpdate) {
+          this.updateTimeElement(this.dateToString(oDate, 1), this.dateToString(oDate, 2)); // getDateTime(oDate)
+          bUpdate = false;
         }
-      });
-    return sAuthor;
+        this.aEntries.push(item);
+        this.create(nCheck, item.value);
+      }
+    });
+    console.dir(this.aEntries);
   }
 
   /**
-   * Init the module. Reads information from localstorage and add existing items.
-   * @param {String} sAuthorDef The default text in h2 element
-   * @returns {String} Content from [method readStore]{@link NoteModule#readStore} or the h2 element 
+   * Init the module. Init event listener for the delete button and calls 
+   * [method readStore]{@link NoteModule#readStore}
    */
-  init(sAuthorDef) {
-    const sAuthor = this.initList(),
-      on = function (selector, eventType, cb) {
-        document.addEventListener(eventType, (event) => {
-          let element = event.target
-      
-          while (element) {
-            if (element.matches(selector)) {
-              return cb({
-                handleObj: element, 
-                originalEvent: event
-              })
-            }
-            element = element.parentElement
+  init() {
+    const on = function (selector, eventType, cb) {
+      document.addEventListener(eventType, (event) => {
+        let element = event.target
+
+        while (element) {
+          if (element.matches(selector)) {
+            return cb({
+              handleObj: element, 
+              originalEvent: event
+            })
           }
-        })
-      };
+          element = element.parentElement
+        }
+      })
+    };
 
     // Set listener to get click event of the delete buttons 
     on('.remove-note', 'click', event => {
@@ -308,12 +276,6 @@ class NoteListModule extends EmitterModule {
       this.delete(sId);
     });
 
-    if (sAuthor === '' && typeof(sAuthorDef) === 'string') {
-      this.sDefaultAuthor = sAuthorDef;
-      return sAuthorDef;
-    } else {
-      this.sDefaultAuthor = sAuthor;
-      return sAuthor;
-    }
+    this.readStore();
   }
 }

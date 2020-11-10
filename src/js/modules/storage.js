@@ -20,36 +20,19 @@ class StorageModule {
     }
   }
 
-  /**
-   * Sets the given parameters into localstorage
-   * @param {String} sKey The key for the local storage
-   * @param {String} sValue Content to store
-   */
-  save(sKey, sValue) { // should be handled as async
+
+  get(sKey) {
+    let oValue = {},
+      sValue = '';
     if (!this.bStorage) {
-      return false;
+      return;
     }
 
-    if (typeof sKey !== 'string' || sKey === '') {
-      self.console.warn('Format of parameter sKey is not correct');
-      return false;
+    sValue = this.storage.getItem(sKey);
+    if (sValue) {
+      oValue = {key: sKey, value: sValue};
     }
-
-    if (typeof sValue !== 'string' || sValue === '') {
-      self.console.warn('Format of parameter sValue is not correct');
-      return false;
-    }
-
-    try {
-      this.storage.setItem(sKey, sValue);
-      if (sKey !== 'author') {
-        this.infoModule.setText('Entry saved locally');
-      }
-      return true;
-    } catch (e) {
-      this.infoModule.setText('Error while saving: ' + e);
-      return false;
-    }
+    return oValue;
   }
 
   /**
@@ -105,6 +88,38 @@ class StorageModule {
       return true;
     } catch (e) {
       this.infoModule.setText('Error while deleting: ' + e);
+      return false;
+    }
+  }
+
+    /**
+   * Sets the given parameters into localstorage
+   * @param {String} sKey The key for the local storage
+   * @param {String} sValue Content to store
+   */
+  save(sKey, sValue) { // should be handled as async
+    if (!this.bStorage) {
+      return false;
+    }
+
+    if (typeof sKey !== 'string' || sKey === '') {
+      self.console.warn('Format of parameter sKey is not correct');
+      return false;
+    }
+
+    if (typeof sValue !== 'string' || sValue === '') {
+      self.console.warn('Format of parameter sValue is not correct');
+      return false;
+    }
+
+    try {
+      this.storage.setItem(sKey, sValue);
+      if (sKey !== 'author') {
+        this.infoModule.setText('Entry saved locally');
+      }
+      return true;
+    } catch (e) {
+      this.infoModule.setText('Error while saving: ' + e);
       return false;
     }
   }
