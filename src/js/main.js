@@ -53,7 +53,7 @@
       sAuthor = sValue;
     } else {
       let oValue = storageHandler.get('author');
-      if (oValue.value && oValue.value !== '' && oValue.value !== sDefaultAuthor) {
+      if (value in oValue && oValue.value !== '' && oValue.value !== sDefaultAuthor) {
         sAuthor = oValue.value;
       }
     }
