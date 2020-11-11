@@ -4,7 +4,8 @@
 /** Class representing a storage module to interact with LocalStorage */
 class StorageModule {
 
-  /** Set instance of InfoModule
+  /** 
+   *  Set instance of storage module
    *  @param {Storage} localStorage The Storage object of the Web Storage API
    */
   constructor(localStorage) {
@@ -20,26 +21,41 @@ class StorageModule {
     }
   }
 
-
+  /**
+   * Tries to get only one Information from LocalStorage. Searching for the key given in Parameter. 
+   * @param {String} sKey The key to search in LS.
+   * 
+   * @returns {Object}  Information about the Entry. Contains following properties:
+   *                    {String} key:   The key from localStorage
+   *                    {String} value: The value from localStorage
+   */
   get(sKey) {
     let oValue = {},
       sValue = '';
-    if (!this.bStorage) {
-      return;
-    }
 
-    sValue = this.storage.getItem(sKey);
-    if (sValue) {
-      oValue = {key: sKey, value: sValue};
+    if (!this.bStorage || typeof sKey !== "string") {
+      return oValue;
     }
-    return oValue;
+    try {
+      sValue = this.storage.getItem(sKey);
+      if (sValue) {
+        oValue = {key: sKey, value: sValue};
+      }
+    }
+    catch(e) {
+      self.console.warn("Get was not sucessful", e);
+    }
+    finally {
+      return oValue;
+    }
   }
 
   /**
    * Get all entries from local storage. The returned array contains the 
-   * entries in descending order. 
-   * @returns {Array} Array with objects of entries. The object itself has the structure
-   *                  {key: 'theKey', value: 'theValue'}.
+   * entries in descending order.
+   * 
+   * @returns {Array} Array with objects of entries. See [get]{@link localStorage#get} for the 
+   *                  object details.
    */
   getList() {
     let aKeys = [],
@@ -52,25 +68,24 @@ class StorageModule {
     for (let i = 0; i < this.storage.length; i = i + 1) {
       aKeys.push(this.storage.key(i));
     }
-    // sort the key after the timestamp and bring it in descending order
+
+    // Sort the key after the timestamp and bring it in descending order
     aKeys = aKeys.sort();
     for (let i = aKeys.length; i-- > 0;) {
-      let sKey = aKeys[i],
-        sValue = this.storage.getItem(sKey);
+      let oValue = this.get(aKeys[i]);
       
-      if (sValue) {
-        aValues.push({key: sKey, value: sValue});
-      } else {
-        continue;
+      if (oValue.value) {
+        aValues.push(oValue);
       }
     }
     return aValues;
   }
 
   /**
-   * Removes a item from localStorage by given ID
-   * @param {String} sId The key in localStorage to remove
-   * @returns {Boolean} If operation was successfull or not
+   * Removes a item from localStorage by the given ID.
+   * @param {String} sId  The key in localStorage to remove
+   * 
+   * @returns {Boolean}   If operation was successfull or not
    */
   remove(sId) {
     if (!this.bStorage) {
@@ -92,12 +107,12 @@ class StorageModule {
     }
   }
 
-    /**
-   * Sets the given parameters into localstorage
+  /**
+   * Tries to set the given parameters into localStorage
    * @param {String} sKey The key for the local storage
    * @param {String} sValue Content to store
    */
-  save(sKey, sValue) { // should be handled as async
+  save(sKey, sValue) {
     if (!this.bStorage) {
       return false;
     }
@@ -114,9 +129,7 @@ class StorageModule {
 
     try {
       this.storage.setItem(sKey, sValue);
-      if (sKey !== 'author') {
-        this.infoModule.setText('Entry saved locally');
-      }
+      this.infoModule.setText('Entry saved in LocalStorage');
       return true;
     } catch (e) {
       this.infoModule.setText('Error while saving: ' + e);

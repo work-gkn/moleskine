@@ -17,13 +17,13 @@
   const KEY_RETURN = "Enter",
     infoModule = new InfoModule(),
     storageHandler = new StorageModule(self.localStorage),
-    noteListModule = new NoteListModule(document.getElementById('containerNotes')),
+    noteListModule = new NoteListModule(document.getElementById('containerNotes'), document.getElementsByTagName('time')[0]),
     eAuthor = document.getElementById('author'),
     eBtn = document.getElementById('save'),
     eText = document.getElementById('textarea'),
     sDefaultAuthor = eAuthor.firstChild.nodeValue;
 
-  /** Clean up the textarea from text */
+  /** Cleans up the textarea from text */
   const fCleanUp = function () {
     if (bClean) {
       return;
@@ -41,25 +41,29 @@
     }
   };
 
-  /** Get and set informaton about the owner (Author) Tries to save it in Storage */
+  /**
+   * Get and set informaton about the owner (Author). Gives value to StorageHandler (set) or get
+   * value from it.
+   * @param {String} sAction Possible values are "get" and "set". Default is "get".
+   * @param {String=} sValue Name of Author to store. Should be set, when sAction "set"
+   */
   function manageAuthor(sAction, sValue) {
-    let sAuthor = sDefaultAuthor;
-    if (typeof sAction !== 'string') {
-      return sAuthor;
+    if (typeof sAction !== 'string' || sAction === '') {
+      sAction = "get";
     }
 
     if (sAction === 'set' && typeof sValue === 'string' && sValue !== '') {
       storageHandler.save('author', sValue);
-      sAuthor = sValue;
-    } else {
-      let oValue = storageHandler.get('author');
-      if (value in oValue && oValue.value !== '' && oValue.value !== sDefaultAuthor) {
-        sAuthor = oValue.value;
-      }
+      return sValue;
     }
-    return sAuthor;
+    
+    let oValue = storageHandler.get('author');
+    if (oValue.value && oValue.value !== '' && oValue.value !== sDefaultAuthor) {
+      return oValue.value;
+    }
+    return sDefaultAuthor;
   }
-
+ 
   // The Emitters in this block are only examples! For a one file JS this is not really necessary.
   noteListModule.on('setInfoText', sText => infoModule.setText(sText));
   noteListModule.on('readStore', () => {
@@ -67,16 +71,15 @@
     noteListModule.initList(aList);
   });
 
-  noteListModule.on('saveEntry', (sKey, sValue) => {
-     if (storageHandler.save(sKey, sValue)) {
-      noteListModule.create(parseInt(sKey, 10), sValue, true);
-      //noteListModule.updateTimeElement(this.dateToString(oDate, 1), this.dateToString(oDate, 2));
-     }
+  noteListModule.on('saveEntry', (sValue, oDtGnrt) => {
+    if (storageHandler.save(oDtGnrt.textTimestamp, sValue)) {
+      noteListModule.create(oDtGnrt, sValue, true);
+    }
   });
   
-  noteListModule.on('deleteEntry', (sId, oDate) => {
+  noteListModule.on('deleteEntry', (sId) => {
     if (storageHandler.remove(sId)) {
-      noteListModule.removeFromList(sId, oDate);
+      noteListModule.removeFromList(sId);
     }
   });
   // End Emitters
@@ -97,11 +100,11 @@
     }
   });
 
-  // Elemets for the note text.
+  // Events for the element that contains note text.
   eText.addEventListener('click', () => fCleanUp());
   eText.addEventListener('focus', () => fCleanUp());
 
-  // Save button in form.
+  // Event for the save button in form.
   eBtn.addEventListener('click', () => {
     noteListModule.save(eText.value);
     bClean = false;

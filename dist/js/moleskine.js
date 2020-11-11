@@ -138,7 +138,8 @@ class CacheModule {
 /** Class representing a storage module to interact with LocalStorage */
 class StorageModule {
 
-  /** Set instance of InfoModule
+  /** 
+   *  Set instance of storage module
    *  @param {Storage} localStorage The Storage object of the Web Storage API
    */
   constructor(localStorage) {
@@ -154,26 +155,41 @@ class StorageModule {
     }
   }
 
-
+  /**
+   * Tries to get only one Information from LocalStorage. Searching for the key given in Parameter. 
+   * @param {String} sKey The key to search in LS.
+   * 
+   * @returns {Object}  Information about the Entry. Contains following properties:
+   *                    {String} key:   The key from localStorage
+   *                    {String} value: The value from localStorage
+   */
   get(sKey) {
     let oValue = {},
       sValue = '';
-    if (!this.bStorage) {
-      return;
-    }
 
-    sValue = this.storage.getItem(sKey);
-    if (sValue) {
-      oValue = {key: sKey, value: sValue};
+    if (!this.bStorage || typeof sKey !== "string") {
+      return oValue;
     }
-    return oValue;
+    try {
+      sValue = this.storage.getItem(sKey);
+      if (sValue) {
+        oValue = {key: sKey, value: sValue};
+      }
+    }
+    catch(e) {
+      self.console.warn("Get was not sucessful", e);
+    }
+    finally {
+      return oValue;
+    }
   }
 
   /**
    * Get all entries from local storage. The returned array contains the 
-   * entries in descending order. 
-   * @returns {Array} Array with objects of entries. The object itself has the structure
-   *                  {key: 'theKey', value: 'theValue'}.
+   * entries in descending order.
+   * 
+   * @returns {Array} Array with objects of entries. See [get]{@link localStorage#get} for the 
+   *                  object details.
    */
   getList() {
     let aKeys = [],
@@ -186,25 +202,24 @@ class StorageModule {
     for (let i = 0; i < this.storage.length; i = i + 1) {
       aKeys.push(this.storage.key(i));
     }
-    // sort the key after the timestamp and bring it in descending order
+
+    // Sort the key after the timestamp and bring it in descending order
     aKeys = aKeys.sort();
     for (let i = aKeys.length; i-- > 0;) {
-      let sKey = aKeys[i],
-        sValue = this.storage.getItem(sKey);
+      let oValue = this.get(aKeys[i]);
       
-      if (sValue) {
-        aValues.push({key: sKey, value: sValue});
-      } else {
-        continue;
+      if (oValue.value) {
+        aValues.push(oValue);
       }
     }
     return aValues;
   }
 
   /**
-   * Removes a item from localStorage by given ID
-   * @param {String} sId The key in localStorage to remove
-   * @returns {Boolean} If operation was successfull or not
+   * Removes a item from localStorage by the given ID.
+   * @param {String} sId  The key in localStorage to remove
+   * 
+   * @returns {Boolean}   If operation was successfull or not
    */
   remove(sId) {
     if (!this.bStorage) {
@@ -226,12 +241,12 @@ class StorageModule {
     }
   }
 
-    /**
-   * Sets the given parameters into localstorage
+  /**
+   * Tries to set the given parameters into localStorage
    * @param {String} sKey The key for the local storage
    * @param {String} sValue Content to store
    */
-  save(sKey, sValue) { // should be handled as async
+  save(sKey, sValue) {
     if (!this.bStorage) {
       return false;
     }
@@ -248,9 +263,7 @@ class StorageModule {
 
     try {
       this.storage.setItem(sKey, sValue);
-      if (sKey !== 'author') {
-        this.infoModule.setText('Entry saved locally');
-      }
+      this.infoModule.setText('Entry saved in LocalStorage');
       return true;
     } catch (e) {
       this.infoModule.setText('Error while saving: ' + e);
@@ -262,77 +275,71 @@ class StorageModule {
 /* global EmitterModule */
 
 /** 
- * Class representing the note module 
+ * Class representing the notelist module 
  * @extends EmitterModule
  */
 
 class NoteListModule extends EmitterModule {
   /**
    * 
-   * @param {HTMLUListElement} eUl 
+   * @param {HTMLUListElement}  eUl
+   * @param {HTMLTimeElement}   eTime
    */
-  constructor (eUl) {
+  constructor (eUl, eTime) {
     super();
     this.eUl = eUl,
+    this.eTime = eTime;
     this.aEntries = [],
     this.sDefaultText = '';
   }
 
   /**
-   * Generate a String from a given date Object
-   * @param {Object} oDate   A valid JS date object
-   * @param {Number} nFormat Number to get the formated string
-   *                         1 = For output in frontend
-   *                         2 = For insert into datetime attribute
+   * Generates a new Date object and set time to the value in parameter, if given.
+   * @param {String=} sTmstmp  An timestamp in milliseconds as string.
+   * 
+   * @returns {Object}  Which has the following properties
+   *                    {Object} dateObject:    The date object itself.
+   *                    {String} textTimestamp: Converted timestamp of date object.
+   *                    {String} textTime:      Date and Time as String, seperated by blank
+   *                                            (YYYY-MM-DD hh:mm:ss)
+   *                    {String} textDateTime:  Date and Time as String, sperated by T 
+   *                                            (YYYY-MM-DDThh:mm:ss)
    */
-  dateToString(oDate, nFormat = 1) {
-    let fPad,
-      sDate,
-      sTime;
-
-    fPad = function (nNr) {
+  generateDates(sTmstmp) {
+    let oDt = new Date();
+    
+    if (typeof sTmstmp !== 'string') {
+      sTmstmp = oDt.getTime().toString(10);
+    } else {
+      oDt.setTime(parseInt(sTmstmp, 10));
+    }
+    
+    const fPad = function (nNr) {
       if (nNr < 10) {
         return '0' + nNr;
       }
       return nNr;
     };
 
-    sDate = oDate.getFullYear() +
-    '-' + fPad(oDate.getMonth() + 1) +
-    '-' + fPad(oDate.getDate());
+    let sDt = oDt.getFullYear() + '-' + fPad(oDt.getMonth() + 1) + '-' + fPad(oDt.getDate());
+    let sTm = fPad(oDt.getHours()) + ':' + fPad(oDt.getMinutes()) + ':' + fPad(oDt.getSeconds());
 
-    sTime = fPad(oDate.getHours()) +
-    ':' + fPad(oDate.getMinutes()) +
-    ':' + fPad(oDate.getSeconds());
-
-    if (nFormat === 2) {
-      return sDate + 'T' + sTime;
-    } else {
-      return sDate + ' ' + sTime;
+    return {
+      dateObject: oDt,
+      textTimestamp: sTmstmp,
+      textTime: sDt + ' ' + sTm,
+      textDateTime: sDt + 'T' + sTm
     }
   }
   
   /**
-   * Gets the time element from DOM and updates it with the given parameters
-   * @param {String} sValueText   Text to set in the textnode of time element
-   * @param {String} sValueAttrib Text to set into the datetime attribute of time element
+   * Gets the time element from DOM and updates it with the given object
+   * @param {Object} oDtGnrt Object should be geerated by method [generateDates]{@link NoteListModule#generateDates}
    */
-  updateTimeElement(sValueText, sValueAttrib) {
-    if (typeof sValueText !== 'string' || sValueText === '') {
-      self.console.warn('Wrong format for parameter sValueText');
-      return;
-    }
-
-    if (typeof sValueAttrib !== 'string' || sValueAttrib === '') {
-      self.console.warn('Wrong format for parameter sValueAttrib');
-      return;
-    }
-
-    let eTime = document.getElementsByTagName('time')[0];
-
-    if (eTime) {
-      eTime.firstChild.nodeValue = sValueText;
-      eTime.setAttribute('datetime', sValueAttrib);
+  updateTimeElement(oDtGnrt) {
+    if (this.eTime) {
+      this.eTime.firstChild.nodeValue = oDtGnrt.textTime;
+      this.eTime.setAttribute('datetime', oDtGnrt.textDateTime);
     }
   }
 
@@ -349,6 +356,31 @@ class NoteListModule extends EmitterModule {
   }
 
   /**
+   * Try to call deleteEntry from the events property and pass the parameters to it.
+   */
+  deleteEntry(sId) {
+    try {
+      this.emit('deleteEntry', sId);
+    } catch(e) {
+      self.console.error(e);
+    }
+  }
+
+  /**
+   * Tries to remove the given sId from the internal property aEntries and the related element in
+   * DOM.
+   * @param {String} sId ID to remove from the array
+   */
+  removeFromList(sId) {
+    let index = this.aEntries.findIndex(value => value.key === sId);
+    if (index > -1) {
+      this.aEntries.splice(index, 1);
+    }
+    document.getElementById(sId).remove();
+    this.updateTimeElement(this.generateDates());
+  }
+
+  /**
    * Try to call readStore from the events property.
    */
   readStore() {
@@ -362,92 +394,60 @@ class NoteListModule extends EmitterModule {
   }
 
   /**
-   * Try to call saveEntry from the events property and pass the parameters to it. Saves also
-   * the given parameter sValue as the first entry of the property aEntries.
+   * Try to call saveEntry from the events property and pass the parameter to it.
    * 
-   * @param {String} sKey   Key to save in storage.
    * @param {String} sValue Value to save in storage.
    */
-  saveEntry(sKey, sValue) {
+  save(sValue) {
+    if (sValue === '' || sValue === this.sDefaultText) {
+      return;
+    }
+
     try {
-      this.emit('saveEntry', sKey, sValue)
+      this.emit('saveEntry', sValue, this.generateDates())
     } catch (e) {
       this.setInfoText('Entry could not be saved in storage!');
       self.console.error(e);
-    } finally {
-      this.aEntries.unshift({key: sKey, value: sValue});
     }
   }
 
   /**
-   * Try to call deleteEntry from the events property and pass the parameters to it.
-   * 
-   * @param {String} sKey   Key to save in storage.
-   * @param {String} sValue Value to save in storage.
-   */
-  deleteEntry(sId, oDate) {
-    try {
-      this.emit('deleteEntry', sId, oDate);
-    } catch(e) {
-      self.console.error(e);
-      return false;
-    }
-  }
-
-  /**
-   * Tries to remove the given sId from the internal property aEntries.
-   * @param {String} sId ID to remove from the array
-   * @param {Date} oDate Date object to update the last change info
-   */
-  removeFromList(sId, oDate) {
-    this.updateTimeElement(this.dateToString(oDate, 1), this.dateToString(oDate, 2));
-    let index = this.aEntries.findIndex(value => value.key === sId);
-    if (index > -1) {
-      this.aEntries.splice(index, 1);
-    }
-    document.getElementById(sId).remove();
-  }
-
-  /**
-   * Tries to delete the given id from localStorage after confirmation
+   * Prepairs delete after confirming deletion
    * @param {String} sId ID that should be tried to remove from localStorage
-   * @returns {Boolean} If deletion was successful or not
+   * 
    */
   delete(sId) {
     if (typeof sId !== 'string' || sId === '') {
       self.console.log('Wrong format for parameter sId');
-      return false;
+      return;
     }
 
-    let bQuestion = self.confirm('Do you really want to delete this entry?'),
-      oDate = new Date();
-
-    if (bQuestion) {
-      this.deleteEntry(sId, oDate);
+    if (self.confirm('Do you really want to delete this entry?')) {
+      this.deleteEntry(sId);
     }
   }
 
   /**
-   * Creates the note item to include it in the DOM
-   * @param {number} nId     Id for li element
-   * @param {string} sText   Text for li element
-   * @param {boolean} bFirst Item should be set on top
+   * Creates a note item element to include it in the DOM
+   * @param {Object} oDtGnrt  Date information and strings. See [generateDates]{@link NoteListModule#generateDates}
+   * @param {String} sText   Text for li element
+   * @param {Boolean} bFirst Item should be set on top. Mainly the case by generating a new note.
    */
-  create(nId, sText, bFirst = false) {
+  create(oDtGnrt, sText, bFirst = false) {
+    
     let eLi = document.createElement('li'),
       eDiv = document.createElement('div'),
       eStr = document.createElement('strong'),
       eP = document.createElement('p'),
       eBtn = document.createElement('button'),
-      sDate = this.dateToString(new Date(nId), 1);
-      // getDateTime(nId)
+      oEntry = {key: oDtGnrt.textTimestamp, value: sText, dateGenerate: oDtGnrt};
 
-    eStr.appendChild(document.createTextNode(sDate));
+    eStr.appendChild(document.createTextNode(oDtGnrt.textTime));
 
     eP.appendChild(document.createTextNode(sText));
 
     eBtn.setAttribute('type', 'button');
-    eBtn.setAttribute('data-key', nId)
+    eBtn.setAttribute('data-key', oDtGnrt.textTimestamp)
     eBtn.classList.add('btn', 'btn-danger', 'destroy', 'remove-note');
     eBtn.appendChild(document.createTextNode('Delete'));
 
@@ -456,62 +456,44 @@ class NoteListModule extends EmitterModule {
     eDiv.appendChild(eBtn);
 
     eLi.classList.add('list-group-item');
-    eLi.setAttribute('id', nId);
+    eLi.setAttribute('id', oDtGnrt.textTimestamp);
 
     eLi.appendChild(eDiv);
 
     if (bFirst === true) {
-      const eFirst = this.eUl.childNodes[0];
-      this.eUl.insertBefore(eLi, eFirst);
+      this.aEntries.unshift(oEntry);
+      this.updateTimeElement(oDtGnrt);
+      this.eUl.insertBefore(eLi, this.eUl.childNodes[0]);
     } else {
+      this.aEntries.push(oEntry);
       this.eUl.appendChild(eLi);
     }
   }
 
-  /**
-   * Get the content for the note and creates new elements to include in DOM
-   * @param {String} sEntry  Content from textarea
-   * @returns {Boolean}      Save in Storage was successful or not
-   */
-  save(sEntry) {
-    let oDate = new Date(),
-      nKey = oDate.getTime(), // getDateTime()
-      sKey = nKey.toString();
-
-    if (sEntry === '' || sEntry === this.sDefaultText) {
-      return false;
-    }
-
-    this.saveEntry(sKey, sEntry);  
-  }
-
   /** 
-   * Get entries from Storage and writes the information for each item into DOM
-   * @returns {String} value read from aEntries with key author or an empty string
+   * Get entries from Storage and calls [create]{@link NoteListModule#create} for each note item.
+   * @param {Array} aValues Array of entries generated by the storage handler.
    */
   initList(aValues) {
-    let bUpdate = true,
-    oDate = new Date();
+    let bUpdate = true;
 
     aValues.map(item => {
-      const nCheck = parseInt(item.key, 10);
+      const oDtGnrt = this.generateDates(item.key),
+        nCheck = oDtGnrt.dateObject.getTime();
       if (typeof nCheck === 'number' && item.key !== 'author') {
-        oDate.setTime(nCheck);
+        this.create(oDtGnrt, item.value);
         // This updates the information in 'Last updated' with the date of the first entry
         if (bUpdate) {
-          this.updateTimeElement(this.dateToString(oDate, 1), this.dateToString(oDate, 2)); // getDateTime(oDate)
+          this.updateTimeElement(oDtGnrt);
           bUpdate = false;
         }
-        this.aEntries.push(item);
-        this.create(nCheck, item.value);
       }
     });
-    console.dir(this.aEntries);
   }
 
   /**
    * Init the module. Init event listener for the delete button and calls 
-   * [method readStore]{@link NoteModule#readStore}
+   * method [readStore]{@link NoteModule#readStore}
    */
   init() {
     const on = function (selector, eventType, cb) {
@@ -533,7 +515,9 @@ class NoteListModule extends EmitterModule {
     // Set listener to get click event of the delete buttons 
     on('.remove-note', 'click', event => {
       const sId = event.handleObj.getAttribute("data-key");
-      this.delete(sId);
+      if (sId) {
+        this.delete(sId);
+      }
     });
 
     this.readStore();
@@ -558,13 +542,13 @@ class NoteListModule extends EmitterModule {
   const KEY_RETURN = "Enter",
     infoModule = new InfoModule(),
     storageHandler = new StorageModule(self.localStorage),
-    noteListModule = new NoteListModule(document.getElementById('containerNotes')),
+    noteListModule = new NoteListModule(document.getElementById('containerNotes'), document.getElementsByTagName('time')[0]),
     eAuthor = document.getElementById('author'),
     eBtn = document.getElementById('save'),
     eText = document.getElementById('textarea'),
     sDefaultAuthor = eAuthor.firstChild.nodeValue;
 
-  /** Clean up the textarea from text */
+  /** Cleans up the textarea from text */
   const fCleanUp = function () {
     if (bClean) {
       return;
@@ -582,25 +566,29 @@ class NoteListModule extends EmitterModule {
     }
   };
 
-  /** Get and set informaton about the owner (Author) Tries to save it in Storage */
+  /**
+   * Get and set informaton about the owner (Author). Gives value to StorageHandler (set) or get
+   * value from it.
+   * @param {String} sAction Possible values are "get" and "set". Default is "get".
+   * @param {String=} sValue Name of Author to store. Should be set, when sAction "set"
+   */
   function manageAuthor(sAction, sValue) {
-    let sAuthor = sDefaultAuthor;
-    if (typeof sAction !== 'string') {
-      return sAuthor;
+    if (typeof sAction !== 'string' || sAction === '') {
+      sAction = "get";
     }
 
     if (sAction === 'set' && typeof sValue === 'string' && sValue !== '') {
       storageHandler.save('author', sValue);
-      sAuthor = sValue;
-    } else {
-      let oValue = storageHandler.get('author');
-      if (oValue.value && oValue.value !== '' && oValue.value !== sDefaultAuthor) {
-        sAuthor = oValue.value;
-      }
+      return sValue;
     }
-    return sAuthor;
+    
+    let oValue = storageHandler.get('author');
+    if (oValue.value && oValue.value !== '' && oValue.value !== sDefaultAuthor) {
+      return oValue.value;
+    }
+    return sDefaultAuthor;
   }
-
+ 
   // The Emitters in this block are only examples! For a one file JS this is not really necessary.
   noteListModule.on('setInfoText', sText => infoModule.setText(sText));
   noteListModule.on('readStore', () => {
@@ -608,16 +596,15 @@ class NoteListModule extends EmitterModule {
     noteListModule.initList(aList);
   });
 
-  noteListModule.on('saveEntry', (sKey, sValue) => {
-     if (storageHandler.save(sKey, sValue)) {
-      noteListModule.create(parseInt(sKey, 10), sValue, true);
-      //noteListModule.updateTimeElement(this.dateToString(oDate, 1), this.dateToString(oDate, 2));
-     }
+  noteListModule.on('saveEntry', (sValue, oDtGnrt) => {
+    if (storageHandler.save(oDtGnrt.textTimestamp, sValue)) {
+      noteListModule.create(oDtGnrt, sValue, true);
+    }
   });
   
-  noteListModule.on('deleteEntry', (sId, oDate) => {
+  noteListModule.on('deleteEntry', (sId) => {
     if (storageHandler.remove(sId)) {
-      noteListModule.removeFromList(sId, oDate);
+      noteListModule.removeFromList(sId);
     }
   });
   // End Emitters
@@ -638,11 +625,11 @@ class NoteListModule extends EmitterModule {
     }
   });
 
-  // Elemets for the note text.
+  // Events for the element that contains note text.
   eText.addEventListener('click', () => fCleanUp());
   eText.addEventListener('focus', () => fCleanUp());
 
-  // Save button in form.
+  // Event for the save button in form.
   eBtn.addEventListener('click', () => {
     noteListModule.save(eText.value);
     bClean = false;
