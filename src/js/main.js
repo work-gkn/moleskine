@@ -14,7 +14,7 @@
   
   let bClean = false;
   
-  const KEY_RETURN = "Enter",
+  const KEY_RETURN = 'Enter',
     infoModule = new InfoModule(),
     storageHandler = new StorageModule(self.localStorage),
     noteListModule = new NoteListModule(document.getElementById('containerNotes'), document.getElementsByTagName('time')[0]),
@@ -37,7 +37,7 @@
     if (bOnline) {
       infoModule.setText('on the web');
     } else {
-      infoModule.setText('off the web')
+      infoModule.setText('off the web');
     }
   };
 
@@ -49,7 +49,7 @@
    */
   function manageAuthor(sAction, sValue) {
     if (typeof sAction !== 'string' || sAction === '') {
-      sAction = "get";
+      sAction = 'get';
     }
 
     if (sAction === 'set' && typeof sValue === 'string' && sValue !== '') {
