@@ -102,8 +102,6 @@ class InfoModule {
     }
   }
 }
-// ESLint definition for globals
-/* global InfoModule */
 
 /**
  * Class representing a cache inforamtion module.
@@ -132,8 +130,7 @@ class CacheModule {
     }
   }
 }
-// ESLint definition for globals
-/* global InfoModule */
+
 
 /** Class representing a storage module to interact with LocalStorage */
 class StorageModule {
@@ -167,7 +164,7 @@ class StorageModule {
     let oValue = {},
       sValue = '';
 
-    if (!this.bStorage || typeof sKey !== "string") {
+    if (!this.bStorage || typeof sKey !== 'string') {
       return oValue;
     }
     try {
@@ -177,11 +174,9 @@ class StorageModule {
       }
     }
     catch(e) {
-      self.console.warn("Get was not sucessful", e);
+      self.console.warn('Get was not sucessful', e);
     }
-    finally {
-      return oValue;
-    }
+    return oValue;
   }
 
   /**
@@ -271,8 +266,6 @@ class StorageModule {
     }
   }
 }
-// ESLint definition for globals
-/* global EmitterModule */
 
 /** 
  * Class representing the notelist module 
@@ -329,7 +322,7 @@ class NoteListModule extends EmitterModule {
       textTimestamp: sTmstmp,
       textTime: sDt + ' ' + sTm,
       textDateTime: sDt + 'T' + sTm
-    }
+    };
   }
   
   /**
@@ -404,7 +397,7 @@ class NoteListModule extends EmitterModule {
     }
 
     try {
-      this.emit('saveEntry', sValue, this.generateDates())
+      this.emit('saveEntry', sValue, this.generateDates());
     } catch (e) {
       this.setInfoText('Entry could not be saved in storage!');
       self.console.error(e);
@@ -447,7 +440,7 @@ class NoteListModule extends EmitterModule {
     eP.appendChild(document.createTextNode(sText));
 
     eBtn.setAttribute('type', 'button');
-    eBtn.setAttribute('data-key', oDtGnrt.textTimestamp)
+    eBtn.setAttribute('data-key', oDtGnrt.textTimestamp);
     eBtn.classList.add('btn', 'btn-danger', 'destroy', 'remove-note');
     eBtn.appendChild(document.createTextNode('Delete'));
 
@@ -498,23 +491,23 @@ class NoteListModule extends EmitterModule {
   init() {
     const on = function (selector, eventType, cb) {
       document.addEventListener(eventType, (event) => {
-        let element = event.target
+        let element = event.target;
 
         while (element) {
           if (element.matches(selector)) {
             return cb({
               handleObj: element, 
               originalEvent: event
-            })
+            });
           }
-          element = element.parentElement
+          element = element.parentElement;
         }
-      })
+      });
     };
 
     // Set listener to get click event of the delete buttons 
     on('.remove-note', 'click', event => {
-      const sId = event.handleObj.getAttribute("data-key");
+      const sId = event.handleObj.getAttribute('data-key');
       if (sId) {
         this.delete(sId);
       }
@@ -523,8 +516,6 @@ class NoteListModule extends EmitterModule {
     this.readStore();
   }
 }
-// ESLint definition for globals
-/* global CacheModule, InfoModule, NoteListModule, StorageModule */
 
 // Starts to initialize the site
 (function () {
@@ -539,7 +530,7 @@ class NoteListModule extends EmitterModule {
   
   let bClean = false;
   
-  const KEY_RETURN = "Enter",
+  const KEY_RETURN = 'Enter',
     infoModule = new InfoModule(),
     storageHandler = new StorageModule(self.localStorage),
     noteListModule = new NoteListModule(document.getElementById('containerNotes'), document.getElementsByTagName('time')[0]),
@@ -562,7 +553,7 @@ class NoteListModule extends EmitterModule {
     if (bOnline) {
       infoModule.setText('on the web');
     } else {
-      infoModule.setText('off the web')
+      infoModule.setText('off the web');
     }
   };
 
@@ -574,7 +565,7 @@ class NoteListModule extends EmitterModule {
    */
   function manageAuthor(sAction, sValue) {
     if (typeof sAction !== 'string' || sAction === '') {
-      sAction = "get";
+      sAction = 'get';
     }
 
     if (sAction === 'set' && typeof sValue === 'string' && sValue !== '') {
