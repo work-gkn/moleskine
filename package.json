@@ -21,7 +21,7 @@
     "watch": "grunt watch"
   },
   "devDependencies": {
-    "bootstrap": "^5.0.0-alpha2",
+    "bootstrap": "^5.0.0-beta3",
     "eslint": "^7.12.1",
     "grunt": "^1.3.0",
     "grunt-contrib-concat": "^1.0.1",
